@@ -1,13 +1,11 @@
 package com.computer.parts.shop.Order;
 
-import com.computer.parts.shop.Product.Opinion.Opinion;
 import com.computer.parts.shop.User.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 

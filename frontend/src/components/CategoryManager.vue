@@ -57,15 +57,15 @@
 			</n-modal>
 		</div>
 
-		<n-spin v-if="isLoading" size="large" style="position:absolute; margin-top: 200px;"/>
-		
-		<n-data-table
+		<n-spin :show="isLoading">
+			<n-data-table
 			v-if="!isLoading"
 			:columns="columns"
 			:data="categories"
 			:pagination="pagination"
 			:bordered="false"
-		/>
+			/>
+		</n-spin>
 	</div>
 </template>
 

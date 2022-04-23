@@ -4,13 +4,13 @@
 
 <template>
 	<div class="wrapper">
-        <div class="upperWraper" v-if="!isLoading">
+        <div class="upperWraper">
             <n-input class="nInput" placeholder="Wyszukaj produkt" v-model:value="productState.searchBy">
                 <template #suffix>
                     <fa icon="magnifying-glass" />
                 </template>
             </n-input>
-            <n-button class="addingButton" @click="showModal = true">
+            <n-button class="addingButton" @click="showModal = true; clearModel();">
                 <fa class="icon" icon="plus"/>
                 Dodaj Produkt
             </n-button>
@@ -104,15 +104,15 @@
 			</n-modal>
 		</div>
 
-        <n-spin v-if="isLoading" size="large" style="position:absolute; margin-top: 200px;top: 30%; left: 50%;"/>
-        <table-sorter-group @click="handleSorterClick">
-            <n-data-table
-			:columns="columns"
-			:data="dataTable"
-            v-if="!isLoading"
-			:bordered="false"
-		    />
-        </table-sorter-group>
+        <n-spin :show="isLoading">
+            <table-sorter-group @click="handleSorterClick">
+                <n-data-table
+                :columns="columns"
+                :data="dataTable"
+                :bordered="false"
+                />
+            </table-sorter-group>
+        </n-spin>
         <n-pagination style="margin: 10px; margin-left: auto;" v-if="!isLoading" v-model:page="productState.page" :page-count="totalPages"/>
 	</div>
 </template>
@@ -123,6 +123,7 @@ import { NButton, NModal, NCard, NDataTable, NButtonGroup, NPagination, NInput, 
 import axios from 'axios';
 import TableSorter from './Sorter/TableSorter.vue';
 import TableSorterGroup from "./Sorter/TableSorterGroup.vue";
+import { useToast } from 'vue-toastification';
 
 const dataTable = ref([]);
 const categories = ref([]);
@@ -136,6 +137,7 @@ const previewImageUrlRef = ref("");
 const defaultImageList = ref([]);
 const totalPages = ref(1);
 const abortRequest = ref(new AbortController());
+const toast = useToast();
 
 const validateStatus = ref( {
 	nameStatus: '',
@@ -187,8 +189,10 @@ const clearModel = () => {
         count: '0',
         price: '0.0',
         specifications: [],
-        attachments: []
+        attachments: [],
+        files: [],
     }
+    defaultImageList.value = []
 };
 
 const addFilesEvent = (event) =>{
@@ -229,17 +233,23 @@ const updateProduct = async () => {
     console.log(model.value.attachments);
     model.value.files = [];
 
+    isModification.value = false;
+    showModal.value = false;
+
     axios({
         method: 'put',
         url: '/api/v1/product/' + model.value.id + '/admin',
         data: model.value
     })
     .then(()=>{
+        toast.success("Produkt został zaktualizowany pomyślnie pomyślnie", {timeout: 2000});
         loadAllData();
     })
+    .catch(exc=>{
+        toast.error("Wystąpił błąd podczas aktualizacji produktu", {timeout: 2000});
+        console.log(exc);
+    })
     .finally(()=>{
-        isModification.value = false;
-        showModal.value = false;
         clearModel();
     })
 }
@@ -330,15 +340,21 @@ const addProduct = async () => {
 	else{
         isLoading.value = true;
         showModal.value = false;
-		await axios(
+		axios(
             {
                 method: 'post',
                 url: '/api/v1/product/admin',
                 data: model.value
             }
-        )
-    	clearModel();
-    	await loadAllData();
+        ).then(()=>{
+            toast.success("Dodano produkt pomyślnie", {timeout: 2000});
+            clearModel();
+            loadAllData();
+        }).catch((exc)=>{
+            toast.success("Wystąpił błąd podczas dodawania produktu", {timeout: 2000});
+            console.log(exc);
+        })
+    	
 	}
     
 }
@@ -354,11 +370,16 @@ const removeProduct = () => {
             url: '/api/v1/product/' + toDelete.value.id + '/admin',
         }
     )
+    .then(()=>{
+        toast.success("Pomyślnie usunięto produkt", {timeout: 2000});
+        return loadAllData();
+    })
+    .catch((exc)=>{
+        console.log(exc);
+        toast.error("Wystąpił błąd podczas usuwania produktu", {timeout: 2000});
+    })
     .finally(()=>{
-        loadAllData()
-            .finally(()=>{
-                isLoading.value = false;
-            })
+        isLoading.value = false;
     })
 }
 
@@ -505,7 +526,7 @@ const columns =
   ];
 
 
-watch(()=>{return {...productState}},async (newValue, oldValue)=>{
+watch(()=>{return {...productState}},(newValue, oldValue)=>{
 
     const {sortBy, searchBy, sort, page} = newValue;
     
@@ -515,17 +536,22 @@ watch(()=>{return {...productState}},async (newValue, oldValue)=>{
     }
     abortRequest.value.abort();
     abortRequest.value = new AbortController();
-    try{
-        const buffProducts = await getProducts();
-        
-        let {data} = buffProducts;
+    isLoading.value = true;
 
-        const {list, totalCount} = data;
-        totalPages.value = Math.ceil(totalCount/10);
-        dataTable.value = list;
-    }catch(exc){
-        
-    }
+    getProducts()
+        .then((response)=>{
+            const {list, totalCount} = response.data;
+            totalPages.value = Math.ceil(totalCount/10);
+            dataTable.value = list;
+        })
+        .catch((exc)=>{
+            if(exc.message !== "canceled"){
+                toast.error("Błąd ładowania danych", {timeout: 2000});
+            }
+        })
+        .finally(()=>{
+            isLoading.value = false;
+        })
 });
 
 export default {

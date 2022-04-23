@@ -1,16 +1,11 @@
 package com.computer.parts.shop.Product;
 
-import com.computer.parts.shop.Attachment.Attachment;
 import com.computer.parts.shop.Category.Category;
-import com.computer.parts.shop.Product.Opinion.Opinion;
 import com.computer.parts.shop.Specification.Specification;
-import com.computer.parts.shop.Views.ProductView;
-import com.fasterxml.jackson.annotation.JsonView;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;

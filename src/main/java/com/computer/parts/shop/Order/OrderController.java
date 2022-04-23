@@ -8,16 +8,14 @@ import com.computer.parts.shop.User.UserRepository;
 import com.paypal.base.rest.PayPalRESTException;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,6 +43,23 @@ public class OrderController {
                 user,
                 BASE_URL + SUCCESS_LINK,
                 BASE_URL + CANCEL_LINK);
+    }
+
+    @PutMapping("/{orderId}/admin")
+    public ResponseEntity<?> changeOrderStatus(@PathVariable("orderId") Long orderId,
+                                  @RequestParam(value = "whichStatus") String whichStatus,
+                                  @RequestParam(value = "status") String status
+                                  ){
+
+        if(Objects.equals(whichStatus, "PAYMENT")){
+            orderService.changePaymentStatus(orderId, PaymentStatus.valueOf(status));
+        }else if(Objects.equals(whichStatus, "SHIPMENT")){
+            orderService.changeShipmentStatus(orderId, ShipmentStatus.valueOf(status));
+        }else{
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping(SUCCESS_LINK)
@@ -77,6 +92,7 @@ public class OrderController {
             Integer limit
     ){
         User user = (User) authentication.getPrincipal();
+
         return new Pageable<>(
                 orderService.countOrdersByUserId(user.getId()),
                 orderService.getOrdersByUserId(user.getId(), page, limit)
@@ -102,7 +118,20 @@ public class OrderController {
                     defaultValue = "",
                     required = false
             )
-            String searchBy
+            String searchBy,
+            @RequestParam(
+                    value = "sortBy",
+                    defaultValue = "id",
+                    required = false
+            )
+            String sortBy,
+            @RequestParam(
+                    value = "order",
+                    defaultValue = "ASC",
+                    required = false
+            )
+            Sort.Direction direction
+
     ) throws ExecutionException, InterruptedException {
         Long orderId = null;
 
@@ -116,7 +145,7 @@ public class OrderController {
             ExecutorService executorService = Executors.newSingleThreadExecutor();
             Future<Long> submit = executorService.submit(() -> orderService.countOrderByUserEmail(searchBy));
 
-            List<Order> ordersByUserEmail = orderService.getOrdersByUserEmail(searchBy, page, limit);
+            List<Order> ordersByUserEmail = orderService.getOrdersByUserEmail(searchBy, page, limit, sortBy, direction);
 
             return new Pageable<>(submit.get(),
 
@@ -127,6 +156,7 @@ public class OrderController {
                map.put("remarks", f.getRemarks());
                map.put("paymentStatus", f.getPaymentStatus());
                map.put("shipmentStatus", f.getShipmentStatus());
+               map.put("paymentType", f.getPaymentType());
                map.put("totalPrice",  f.getTotalPrice());
                return map;
             }).toList());

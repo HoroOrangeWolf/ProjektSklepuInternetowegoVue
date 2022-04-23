@@ -124,11 +124,41 @@ public class OrderService {
     public Long countOrderByUserEmail(String useremail){
         return orderRepository.countOrdersByUserEmail(useremail);
     }
-    public List<Order> getOrdersByUserEmail(String useremail, Integer page, Integer limit){
+
+    public void changePaymentStatus(Long orderId, PaymentStatus paymentStatus){
+        Optional<Order> byId = orderRepository.findById(orderId);
+
+        if(byId.isEmpty())
+            throw new IllegalStateException("Order not found!");
+
+        Order order = byId.get();
+
+        if(order.getPaymentType() != PaymentType.TRANSFER)
+            throw new RuntimeException("Invalid payment type");
+
+        order.setPaymentStatus(paymentStatus);
+
+        orderRepository.save(order);
+    }
+
+    public void changeShipmentStatus(Long orderId, ShipmentStatus shipmentStatus){
+        Optional<Order> byId = orderRepository.findById(orderId);
+
+        if(byId.isEmpty())
+            throw new IllegalStateException("Order not found!");
+
+        Order order = byId.get();
+
+        order.setShipmentStatus(shipmentStatus);
+
+        orderRepository.save(order);
+    }
+
+    public List<Order> getOrdersByUserEmail(String useremail, Integer page, Integer limit, String sortBy, Sort.Direction direction){
 
         Sort.Order order = Sort.Order
-                .by("id")
-                .with(Sort.Direction.DESC);
+                .by(sortBy)
+                .with(direction);
 
         Sort sort = Sort.by(
                 List.of(

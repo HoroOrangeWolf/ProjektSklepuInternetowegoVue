@@ -41,18 +41,41 @@ public class UserService implements UserDetailsService {
         userRepository.deleteById(idUser);
     }
 
-    public List<Order> getUserOrders(Long id, int page, int limit) {
-        Sort sort = Sort.by("id").descending();
-        Pageable pageable = PageRequest.of(page, limit, sort);
-        return orderRepository.getUserOrdersById(id,pageable);
+    public List<User> findAllBySimilarEmail(String email, Integer page, Integer limit, String sortBy, Sort.Direction direction){
+
+        Sort.Order order = Sort.Order
+                .by(sortBy)
+                .with(direction);
+
+        Sort sort = Sort.by(
+                List.of(
+                        order
+                )
+        );
+
+        Pageable pageable = PageRequest.of(
+                page,
+                limit,
+                sort
+        );
+
+        return userRepository.findAllBySimilarEmail(email, pageable);
     }
 
-    public List<User> findAll(){
-        return userRepository.findAll();
+    public Long countAllBySimilarEmail(String email){
+        return userRepository.countAllBySimilarEmail(email);
     }
 
-    public List<User> findAllBySimilarEmail(String email){
-        return userRepository.findAllBySimilarEmail(email);
+    public void blockUser(Long userId, Boolean block){
+        Optional<User> optionalUser = userRepository.findById(userId);
+
+        if(optionalUser.isEmpty())
+            throw new IllegalStateException("User not found");
+
+        User user = optionalUser.get();
+
+        user.setIsAccountLocked(block);
+
     }
 
 

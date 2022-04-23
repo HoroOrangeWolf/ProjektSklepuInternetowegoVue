@@ -9,41 +9,119 @@
             </n-input>
         </div>
 
-        <n-spin v-if="isLoading" size="large" style="position:absolute; margin-top: 200px;"/>
-
-		<n-data-table
-			:columns="columns"
-			:data="dataTable"
-            v-if="!isLoading"
-			:pagination="pagination"
-			:bordered="false"
-		/>
+        <n-spin :show="isLoading">
+            <table-sorter-group @click="handleSorterClick">
+                <n-data-table
+                :columns="columns"
+                :data="dataTable"
+                :pagination="pagination"
+                :bordered="false"
+                />
+            </table-sorter-group>
+            <n-pagination
+            :page-count="totalPages"
+            v-model:page="orderState.page"
+             />
+        </n-spin>
     </div>
 </template>
 
 
 <script>
-import { h , ref, watch} from "vue";
-import { NButton, NDataTable, NButtonGroup, NCollapse, NCollapseItem, NInput, NSelect, NSpin, } from "naive-ui";
+import { h , ref, watch, reactive} from "vue";
+import { NButton, NDataTable, NDropdown, NInput, NSelect, NSpin, NPagination } from "naive-ui";
 import axios from 'axios';
-
+import { useToast } from 'vue-toastification';
+import TableSorter from "./Sorter/TableSorter.vue";
+import TableSorterGroup from "./Sorter/TableSorterGroup.vue";
 
 const dataTable = ref([]);
 const showModal = ref(false);
 const isLoading = ref(false);
 const searchInput = ref('');
+const aborter = ref(new AbortController());
+const toast = useToast();
+const totalPages = ref(1);
 
-const searchItems = async () =>{
-    const response = await axios({
+const orderState = reactive({
+    searchBy: '',
+    sort: 'ASC',
+    sortBy: 'id',
+    page: 1
+});
+
+const handleSorterClick = (data)=>{
+    orderState.sort = data.isASC ? 'ASC' : 'DESC';
+    orderState.sortBy = data.name;
+}
+
+const searchItems = () =>{
+    
+    aborter.value.abort();
+    aborter.value = new AbortController();
+    isLoading.value = true;
+
+    axios({
         method: 'get',
-        url: '/api/v1/order/admin?searchBy='+searchInput.value+"&limit=20&page=0"
+        url: '/api/v1/order/admin?searchBy='+searchInput.value+"&limit=10&page="+(orderState.page - 1) + "&sortBy=" + orderState.sortBy + "&order="+orderState.sort,
+        signal: aborter.value.signal
     })
+    .then((response)=>{
+        const { list, totalCount } = response.data;
+        dataTable.value = list;
+        totalPages.value = Math.ceil(totalCount/10);
+    })
+    .catch((exc)=>{
+        if(exc.message!=='canceled'){
+            toast.error("Wystąpił błąd podczas wyszukiwania", {timeout: 2000});
+            console.log(exc);
+        }
+    }).finally(()=>{
+        isLoading.value = false;
+    })
+}
 
-    console.log(response.data);
+const changePaymentStatus = (v, row) => {
+    isLoading.value = true;
 
-    const {totalCount, list} = response.data;
+    axios({
+        method: "put",
+        url: "/api/v1/order/" + row.id + "/admin?whichStatus=PAYMENT&status=" +  v,
+    })
+    .then(()=>{
+        searchItems();
+    })
+    .then(()=>{
+        toast.success("Zmieniono pomyślnie status płatności", {timeout: 2000});
+    }).catch((exc)=>{
+        if(exc.message !== "canceled"){
+            toast.error("Wystąpił błąd podczas zmiany statusu");
+            console.log(exc);
+        }
+        isLoading.value = false;
+    });
+}
 
-    dataTable.value = list;
+const changeShipmentStatus = (v, row) =>{
+
+    isLoading.value = true;
+
+    axios({
+        method: "put",
+        url: "/api/v1/order/" + row.id + "/admin?whichStatus=SHIPMENT&status=" +  v,
+    })
+    .then(()=>{
+        searchItems();
+    })
+    .then(()=>{
+        toast.success("Zmieniono pomyślnie status dostawy", {timeout: 2000});
+    }).catch((exc)=>{
+        if(exc.message !== "canceled"){
+            toast.error("Wystąpił błąd podczas zmiany statusu");
+            console.log(exc);
+        }
+        isLoading.value = false;
+    });
 }
 
 watch(searchInput, ()=>{
@@ -53,12 +131,11 @@ watch(searchInput, ()=>{
 const columns = 
    [
     {
-        title: "Lp.",
-        key: "no",
-        render: (row, index) => index + 1
+        title: h(TableSorter, {name: "id"}, ()=>"Id"),
+        key: "id",
     },
     {
-        title: "Email użytkownika",
+        title: h(TableSorter, {name: "user.email"}, ()=>"Email użytkownika"),
         key: "email"
     },
     {
@@ -66,18 +143,115 @@ const columns =
         key: "remarks"
     },
     {
-        title: "Payment status",
-        key: "paymentStatus"
+        title: h(TableSorter, {name: "paymentType"}, ()=>"Rodzaj płatności"),
+        key: "paymentType",
+        render(row){
+            switch(row.paymentType){
+                case "PAYPAL":
+                    return "PayPal";
+                case "TRANSFER":
+                    return "Przelew";
+                case "ON_SITE":
+                    return "Płatność na miejscu";
+                default:
+                    return "Brak informacji";
+            }
+        }
     },
     {
-        title: "Shipment status",
+        title: h(TableSorter, {name: "paymentStatus"}, ()=>"Status płatności"),
+        key: "paymentStatus",
+        render(row){
+            if(row.paymentType === "TRANSFER"){
+
+                let mapped = "";
+                const status = row.paymentStatus;
+
+                const ar = [
+                    {key: "PROCESSED", label: "Przetworzono"},
+                    {key: "SUCCESS", label: "Zapłacono"},
+                    {key: "DENIED", label: "Odmowa"},
+                    {key: "CANCELED", label: "Anulowana"},
+                    {key: "WAITING_FOR_PAYMENT", label: "Oczekiwanie na płatność"}
+                ];
+
+                switch(status){
+                    case "PROCESSED":
+                        mapped = "Przetworzono";
+                        break;
+                    case "SUCCESS":
+                        mapped = "Zapłacono";
+                        break;
+                    case "DENIED":
+                        mapped = "Odmowa";
+                        break;
+                    case "CANCELED":
+                        mapped = "Anulowana";
+                    case "WAITING_FOR_PAYMENT":
+                        mapped = "Oczekiwanie na płatność";
+                }
+
+                const buff = ar.filter(f=>f.key!==status);
+
+                return h(NDropdown, {options: buff, onSelect: (v)=>changePaymentStatus(v, row)}, ()=>h(NButton, {}, ()=>mapped));
+            }else{
+                if(row.paymentStatus === "SUCCESS")
+                {
+                    return "Zapłacono";
+                }else{
+                    return "Niezapłacono";
+                }
+            }
+        }
+    },
+    {
+        title: h(TableSorter, {name: "shipmentStatus"}, ()=>"Status dostawy"),
         key: "shipmentStatus",
+        render(row){
+            
+            let mapped = "";
+            const status = row.shipmentStatus;
+            const ar = [
+                {key: "DELIVERED", title: "Dostarczono"},
+                {key: "IN_PREPARATION", title: "W przygotowaniu"},
+                {key: "DELIVERING", title: "W trasie"}
+            ];
+
+            switch(status){
+                case "DELIVERED":
+                    mapped = "Dostarczono";
+                    break;
+                case "IN_PREPARATION":
+                    mapped = "W przygotowaniu";
+                    break;
+                case "DELIVERING":
+                    mapped = "W trasie";
+            }
+
+            const buff = ar.filter(f=>f.key!==status);
+
+            return h(NDropdown, {options: buff, onSelect: (v) => changeShipmentStatus(v, row)}, ()=>h(NButton, {}, ()=>mapped));
+        }
     },
     {
-        title: "Cena całkowita",
-        key: "totalPrice"
+        title: h(TableSorter, {name: "totalPrice"}, ()=>"Cena całkowita"),
+        key: "totalPrice",
+        render(row){
+            return `${row.totalPrice} zł`
+        }
     } 
   ];
+
+watch(()=>{return {...orderState}},(newValue, oldValue)=>{
+
+    const {sortBy, searchBy, sort, page} = newValue;
+    
+    if(sortBy !== oldValue.sortBy || searchBy !== oldValue.searchBy || sort !== oldValue.sort)
+    {
+        orderState.page=1;
+    }
+    searchItems();
+});
 
 export default {
   setup() {
@@ -88,11 +262,14 @@ export default {
       dataTable,
       pagination: false,
       showModal,
-      searchInput
+      searchInput,
+      handleSorterClick,
+      totalPages,
+      orderState
     };
   },
 
-  components: {NDataTable, NButton, NInput, NSelect, NSpin}
+  components: {NDataTable, NButton, NInput, NSelect, NSpin, NPagination, TableSorter, TableSorterGroup}
 };
 </script>
 
