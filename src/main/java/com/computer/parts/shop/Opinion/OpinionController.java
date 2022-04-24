@@ -4,6 +4,7 @@ import com.computer.parts.shop.Opinion.Request.OpinionRequest;
 import com.computer.parts.shop.Product.ProductService;
 import com.computer.parts.shop.User.User;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,16 +42,40 @@ public class OpinionController {
             @RequestParam(
                     value = "id"
             )
-            Long id
+            Long id,
+            @RequestParam(
+                    value = "page",
+                    required = false,
+                    defaultValue = "0"
+            )
+            Integer page,
+            @RequestParam(
+                    value = "limit",
+                    required = false,
+                    defaultValue = "20"
+            )
+            Integer limit,
+            @RequestParam(
+                    value = "sortBy",
+                    required = false,
+                    defaultValue = "id"
+            )
+            String sortBy,
+            @RequestParam(
+                    value = "sort",
+                    required = false,
+                    defaultValue = "ASC"
+            )
+            Sort.Direction direction
     ){
         Map<String, Object> stringObjectMap = new TreeMap<>();
         List<Opinion> opinionList = null;
 
-        switch (opinionsFor){
-            case USER:
-                opinionList = opinionService.getOpinionsByUserId(id);
-                stringObjectMap.put("totalCount", opinionList.size());
-                stringObjectMap.put("list", opinionList.stream().map(f->{
+        switch (opinionsFor) {
+            case USER -> {
+                opinionList = opinionService.getOpinionsByUserId(id, page, limit, sortBy, direction);
+                stringObjectMap.put("totalCount", opinionService.countOpinionsByUserId(id));
+                stringObjectMap.put("list", opinionList.stream().map(f -> {
                     Map<String, Object> objectObjectTreeMap = new TreeMap<>();
 
                     objectObjectTreeMap.put("text", f.getText());
@@ -59,12 +84,12 @@ public class OpinionController {
 
                     return objectObjectTreeMap;
                 }).toList());
-                break;
-            case PRODUCT:
-                opinionList = opinionService.getOpinionsByProductId(id);
-                stringObjectMap.put("totalCount", opinionList.size());
+            }
+            case PRODUCT -> {
+                opinionList = opinionService.getOpinionsByProductId(id, page, limit, sortBy, direction);
+                stringObjectMap.put("totalCount", opinionService.countOpinionsByProductId(id));
                 stringObjectMap.put("avgStars", opinionService.getProductAverageOpinions(id));
-                stringObjectMap.put("list", opinionList.stream().map(f->{
+                stringObjectMap.put("list", opinionList.stream().map(f -> {
                     Map<String, Object> objectObjectTreeMap = new TreeMap<>();
 
                     objectObjectTreeMap.put("text", f.getText());
@@ -74,9 +99,9 @@ public class OpinionController {
 
                     return objectObjectTreeMap;
                 }).toList());
-                break;
+            }
         }
-        return null;
+        return stringObjectMap;
     }
 
 
