@@ -80,6 +80,7 @@ public class OpinionController {
 
                     objectObjectTreeMap.put("text", f.getText());
                     objectObjectTreeMap.put("stars", f.getStars());
+                    objectObjectTreeMap.put("userName", f.getUser().getName());
                     objectObjectTreeMap.put("productId", f.getProduct().getId());
 
                     return objectObjectTreeMap;
@@ -91,12 +92,10 @@ public class OpinionController {
                 stringObjectMap.put("avgStars", opinionService.getProductAverageOpinions(id));
                 stringObjectMap.put("list", opinionList.stream().map(f -> {
                     Map<String, Object> objectObjectTreeMap = new TreeMap<>();
-
                     objectObjectTreeMap.put("text", f.getText());
                     objectObjectTreeMap.put("stars", f.getStars());
+                    objectObjectTreeMap.put("userName", f.getUser().getName());
                     objectObjectTreeMap.put("productId", f.getProduct().getId());
-                    objectObjectTreeMap.put("userId", f.getUser().getId());
-
                     return objectObjectTreeMap;
                 }).toList());
             }

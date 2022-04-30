@@ -1,8 +1,12 @@
 package com.computer.parts.shop.User;
 
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.computer.parts.shop.JWT.JWTService;
 import com.computer.parts.shop.Pageable.Pageable;
 import com.computer.parts.shop.User.Response.UserDTO;
+import com.nimbusds.oauth2.sdk.http.HTTPRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.data.domain.Sort;
@@ -10,7 +14,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -18,10 +27,10 @@ import java.util.TreeMap;
 @RequestMapping(path = "/api/v1/user")
 @AllArgsConstructor
 @RestController
-
 public class UserController {
 
     private UserService service;
+    private JWTService jwtService;
 
     @PostMapping
     public void addUser(@RequestBody User user){
@@ -98,10 +107,11 @@ public class UserController {
     }
 
     @GetMapping("/authenticatedUser")
-    public UserDTO getAuthenticatedUser(Authentication authentication){
+    public UserDTO getAuthenticatedUser(Authentication authentication, HttpServletRequest request, HttpServletResponse response){
         if(authentication == null || authentication.getPrincipal() == null){
             return new UserDTO("", "", "", Role.GUEST,false);
         }
+
         User user = (User) authentication.getPrincipal();
 
         return new UserDTO(

@@ -15,6 +15,8 @@ import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -110,7 +112,19 @@ public class ProductController {
                     required = false,
                     defaultValue = "ASC"
             )
-            Sort.Direction direction
+            Sort.Direction direction,
+            @RequestParam(
+                    value = "priceStartAt",
+                    defaultValue = "0",
+                    required = false
+            )
+            BigDecimal priceStartAt,
+            @RequestParam(
+                    value = "priceEndAt",
+                    defaultValue = Double.MAX_VALUE + "",
+                    required = false
+            )
+            BigDecimal priceEndAt
             ) throws ExecutionException, InterruptedException {
 
         ExecutorService executorService = Executors.newFixedThreadPool(6);
@@ -118,7 +132,7 @@ public class ProductController {
 
         if(categoryId < 0)
         {
-            Future<Long> countAllProducts = countService.submit(()-> productService.countAllProductsAlikeToSearchBy(searchBy));
+            Future<Long> countAllProducts = countService.submit(()-> productService.countAllProductsAlikeToSearchBy(searchBy, priceStartAt, priceEndAt));
             countService.shutdown();
 
             List<Product> productList = productService.getProducts(
@@ -126,7 +140,9 @@ public class ProductController {
                     limit,
                     sortBy,
                     direction,
-                    searchBy
+                    searchBy,
+                    priceStartAt,
+                    priceEndAt
             );
 
             List<Future<ProductDTO>> list = new LinkedList<>();
@@ -169,7 +185,7 @@ public class ProductController {
 
         ids.addAll(categoryChildList.stream().map(Category::getId).toList());
 
-        Future<Long> countAllProducts = countService.submit(() -> productService.countProductsByCategoryId(ids, searchBy));
+        Future<Long> countAllProducts = countService.submit(() -> productService.countProductsByCategoryId(ids, searchBy, priceStartAt, priceEndAt));
 
         List<Future<ProductDTO>> list = new LinkedList<>();
 
@@ -179,6 +195,8 @@ public class ProductController {
                 limit,
                 sortBy,
                 direction,
+                priceStartAt,
+                priceEndAt,
                 ids);
 
         for(Product f : productList){
@@ -206,6 +224,21 @@ public class ProductController {
                         throw new RuntimeException(e);
                     }
                 }).toList()
+        );
+    }
+
+    @GetMapping("/producer")
+    public Pageable<String> getProducersByParentCategoryId(
+            @RequestParam(
+                    value = "parentCategoryId"
+            )
+            Long id
+    ){
+        List<String> producersByParentCategoryId = productService.getProducersByParentCategoryId(id);
+
+        return new Pageable<>(
+                (long) producersByParentCategoryId.size(),
+                producersByParentCategoryId
         );
     }
 
@@ -258,7 +291,6 @@ public class ProductController {
     }
 
     @GetMapping(path = "/{id}")
-    @JsonView(ProductView.ProductDetailsView.class)
     public ProductDTO getProductById(@PathVariable("id") Long id){
         Product productById = productService.getProductById(id);
 

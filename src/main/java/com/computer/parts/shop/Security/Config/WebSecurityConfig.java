@@ -1,26 +1,23 @@
 package com.computer.parts.shop.Security.Config;
 
+import com.computer.parts.shop.Filter.CustomAuthorizationFilter;
+import com.computer.parts.shop.JWT.JWTService;
 import com.computer.parts.shop.Security.OidcUserService;
 import com.computer.parts.shop.User.Role;
 import com.computer.parts.shop.User.UserService;
 import lombok.AllArgsConstructor;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.Collections;
-
+import javax.servlet.http.HttpServletResponse;
 
 @Configuration
 @AllArgsConstructor
@@ -30,13 +27,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserService userService;
     private final BCryptPasswordEncoder encoder;
     private final OidcUserService oidcUserService;
-
-
+    private final JWTService jwtService;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 //        Broń boże dotykać tego kodu
-        http.headers().frameOptions().disable().and()
+        http
+                .addFilterBefore(new CustomAuthorizationFilter(userService, jwtService), UsernamePasswordAuthenticationFilter.class)
+                .headers()
+                .frameOptions().disable().and()
                 .csrf()
                         .disable()
                         .authorizeRequests()
@@ -51,15 +50,28 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .defaultSuccessUrl("http://localhost:8080")
                     .failureUrl("http://localhost:8080/login?error")
                 .and()
-                .logout()
-                .deleteCookies("JSESSIONID")
+                    .logout()
+                    .clearAuthentication(true)
+                    .logoutUrl("/logout")
+                    .deleteCookies("JSESSIONID", "access_token", "refresh_token")
+                    .logoutSuccessHandler(((request, response, authentication) -> {
+                        response.setStatus(HttpServletResponse.SC_OK);
+                    }))
                 .and()
                     .oauth2Login()
-                    .defaultSuccessUrl("http://localhost:8080")
-                    .userInfoEndpoint()
-                    .oidcUserService(oidcUserService);
+                .defaultSuccessUrl("http://localhost:8080")
+                .userInfoEndpoint()
+                .oidcUserService(oidcUserService);
 
-//        http.csrf().disable().headers().frameOptions().disable().and().authorizeRequests().anyRequest().permitAll();
+
+//        http.sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+    }
+
+    @Override
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
     }
 
     @Override

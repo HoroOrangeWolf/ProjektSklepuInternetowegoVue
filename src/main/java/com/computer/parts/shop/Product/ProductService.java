@@ -1,5 +1,6 @@
 package com.computer.parts.shop.Product;
 
+import com.computer.parts.shop.Category.Category;
 import com.computer.parts.shop.Category.CategoryService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +49,7 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-    public List<Product> getProductsByCategoryId(String searchBy ,Integer page, Integer limit, String sortBy, Direction direction, List<Long> ids){
+    public List<Product> getProductsByCategoryId(String searchBy , Integer page, Integer limit, String sortBy, Direction direction, BigDecimal priceStartAt, BigDecimal priceEndAt, List<Long> ids){
 
         Order order = Order
                 .by(sortBy)
@@ -59,15 +62,15 @@ public class ProductService {
         );
 
         Pageable pageable = PageRequest.of(
-                Math.toIntExact(page),
-                Math.toIntExact(limit),
+                page,
+                limit,
                 sort
         );
 
-        return productRepository.getProductsByCategoryId(ids, searchBy,pageable);
+        return productRepository.getProductsByCategoryId(ids, searchBy, priceStartAt, priceEndAt,pageable);
     }
 
-    public List<Product> getProducts(Integer page,Integer limit, String sortBy, Direction direction, String searchBy){
+    public List<Product> getProducts(Integer page, Integer limit, String sortBy, Direction direction, String searchBy, BigDecimal priceStartAt, BigDecimal priceEndAt){
         Order order = Order
                 .by(sortBy)
                 .with(direction);
@@ -79,20 +82,29 @@ public class ProductService {
         );
 
         Pageable pageable = PageRequest.of(
-                Math.toIntExact(page),
-                Math.toIntExact(limit),
+                page,
+                limit,
                 sort
         );
 
-        return productRepository.getProductsAlikeToSearchBy(searchBy, pageable);
+        return productRepository.getProductsAlikeToSearchBy(searchBy,priceStartAt, priceEndAt ,pageable);
     }
 
-    public Long countAllProductsAlikeToSearchBy(String searchBy){
-        return productRepository.countProductsAlikeToSearchBy(searchBy);
+    public List<String> getProducersByParentCategoryId(Long parentId){
+
+        List<Category> childCategories = categoryService.getChildCategories(parentId);
+        List<Long> ids = new LinkedList<>(List.of(parentId));
+        ids.addAll(childCategories.stream().map(Category::getId).toList());
+
+        return productRepository.getProducersByCategoriesId(ids);
     }
 
-    public Long countProductsByCategoryId(List<Long> ids, String searchBy){
-        return productRepository.getProductCountByCategoryIds(ids, searchBy);
+    public Long countAllProductsAlikeToSearchBy(String searchBy, BigDecimal priceStartAt, BigDecimal priceEndAt){
+        return productRepository.countProductsAlikeToSearchBy(searchBy, priceStartAt, priceEndAt);
+    }
+
+    public Long countProductsByCategoryId(List<Long> ids, String searchBy, BigDecimal priceStartAt, BigDecimal priceEndAt){
+        return productRepository.getProductCountByCategoryIds(ids, searchBy, priceStartAt, priceEndAt);
     }
 
 

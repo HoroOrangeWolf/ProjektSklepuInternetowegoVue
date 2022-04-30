@@ -147,4 +147,22 @@ public class User implements UserDetails, OidcUser {
     public OidcIdToken getIdToken() {
         return null;
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", password='" + password + '\'' +
+                ", email='" + email + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", role=" + role +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", isEnabled=" + isEnabled +
+                ", isAccountLocked=" + isAccountLocked +
+                ", isSocialAccount=" + isSocialAccount +
+                ", birthDay=" + birthDay +
+                ", getUserGender=" + getUserGender +
+                '}';
+    }
 }
