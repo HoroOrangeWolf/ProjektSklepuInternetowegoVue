@@ -10,7 +10,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CategoryRequest {
-    private Long id;
-    private String name;
-    private Long parentCategoryId = null;
+
+  private Long id;
+  private String name;
+  private Long parentCategoryId = null;
 }

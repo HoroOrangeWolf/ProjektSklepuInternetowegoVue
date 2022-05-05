@@ -2,12 +2,11 @@ package com.computer.parts.shop.Order;
 
 import com.computer.parts.shop.Product.Product;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.*;
 
 @Entity
 @Table(name = "order_product")
@@ -16,27 +15,35 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderProduct {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_product_generator")
-    @SequenceGenerator(name = "order_product_generator", sequenceName = "order_product_sequence", allocationSize = 1)
-    @Column(name = "id", nullable = false)
-    private Long id;
 
-    @Column(name = "quantity")
-    private Integer quantity;
+  @Id
+  @GeneratedValue(
+    strategy = GenerationType.SEQUENCE,
+    generator = "order_product_generator"
+  )
+  @SequenceGenerator(
+    name = "order_product_generator",
+    sequenceName = "order_product_sequence",
+    allocationSize = 1
+  )
+  @Column(name = "id", nullable = false)
+  private Long id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "order_id", nullable = false)
-    @JsonIgnore
-    private Order order;
+  @Column(name = "quantity")
+  private Integer quantity;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "order_id", nullable = false)
+  @JsonIgnore
+  private Order order;
 
-    public OrderProduct(Integer quantity, Order order, Product product) {
-        this.quantity = quantity;
-        this.order = order;
-        this.product = product;
-    }
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "product_id", nullable = false)
+  private Product product;
+
+  public OrderProduct(Integer quantity, Order order, Product product) {
+    this.quantity = quantity;
+    this.order = order;
+    this.product = product;
+  }
 }

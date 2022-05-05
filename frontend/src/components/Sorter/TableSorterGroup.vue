@@ -1,39 +1,33 @@
 <script setup>
-import { ref } from '@vue/reactivity';
-import { inject, provide } from '@vue/runtime-core';
+import { ref } from "@vue/reactivity";
+import { inject, provide } from "@vue/runtime-core";
 
 const moduls = ref([]);
 
-const emiter = defineEmits(['click']);
+const emiter = defineEmits(["click"]);
 
-
-provide("moduler",{
-    addModul(modul, resetModuleFunction){
-        moduls.value = [...moduls.value, {modul, resetModuleFunction}];
-    },
-    clickModul(modul, name){
-        moduls.value.filter(f=>f.modul!==modul).forEach(f=>f.resetModuleFunction());
-        console.log(modul, name);
-        emiter('click', name);
-    },
-    removeModul(modul){
-        moduls.value = moduls.value.filter(f=>f.modul!=modul);
-    }
-})
-
+provide("moduler", {
+  addModul(modul, resetModuleFunction) {
+    moduls.value = [...moduls.value, { modul, resetModuleFunction }];
+  },
+  clickModul(modul, name) {
+    moduls.value.filter((f) => f.modul !== modul).forEach((f) => f.resetModuleFunction());
+    emiter("click", name);
+  },
+  removeModul(modul) {
+    moduls.value = moduls.value.filter((f) => f.modul != modul);
+  },
+});
 </script>
 
-
 <template>
-    <div>
-        <slot/>
-    </div>
+  <div>
+    <slot />
+  </div>
 </template>
 
 <script>
 export default {
-    setup() {
-        
-    },
-}
+  setup() {},
+};
 </script>

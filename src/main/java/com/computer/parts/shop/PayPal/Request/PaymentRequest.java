@@ -8,9 +8,10 @@ import lombok.*;
 @Setter
 @ToString
 public class PaymentRequest {
-    private String currency;
-    private String method;
-    private String intent;
-    private String description;
-    private Double price;
+
+  private String currency;
+  private String method;
+  private String intent;
+  private String description;
+  private Double price;
 }

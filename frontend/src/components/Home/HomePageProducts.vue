@@ -1,137 +1,97 @@
 <template>
-  <div>
-    <div class="path-box">
-      <div class="path-list">
-        <ul>
-          <li>
-            <div class="path-element">
-              <a href="">e-commerce</a>
-              <span class="next-path-tag">
-                <fa class="icon" icon="arrow-right" />
-              </span>
-            </div>
-          </li>
-          <li>
-            <div class="path-element">
-              <a href="">Laptopy i komputery</a>
-              <span class="next-path-tag">
-                <fa class="icon" icon="arrow-right" />
-              </span>
-            </div>
-          </li>
-          <li>
-            <div class="path-element">
-              <a href="">Laptopy/Notebooki</a>
-              <span class="next-path-tag">
-                <fa class="icon" icon="arrow-right" />
-              </span>
-            </div>
-          </li>
-          <li>
-            <div class="path-element">
-              <a href="">Laptopy 2 w 1</a>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="listing-header-box">
-      <div class="listing-header">
-        <h2>Laptopy 2 w 1</h2>
-      </div>
-    </div>
-
+  <div style="margin-top: 20px">
     <div class="products-content-wrapper">
-      <div v-if="!isLoading" class="filter-content-wrapper">
+      <div class="filter-content-wrapper">
         <div class="filter-box">
-          <div class="filter-header-wrapper">
-            <h2>Filtry</h2>
-            <n-button round> Wyczyść wszystkie </n-button>
-          </div>
-          <n-input class="search-box" placeholder="Szukaj filtrów..." round>
-            <template #suffix>
-              <fa icon="magnifying-glass"></fa>
-            </template>
-          </n-input>
+          <div class="filter-header-wrapper"></div>
           <div class="filter-headers">
             <h3>Producent</h3>
           </div>
           <div class="producents-checkboxes-box">
-            <n-space item-style="display: flex;" vertical>
-              <n-checkbox value="Asus" label="Asus" />
-              <n-checkbox value="Dell" label="Dell" />
-              <n-checkbox value="Lenovo" label="Lenovo" />
-              <n-checkbox value="HP" label="HP" />
-            </n-space>
+            <div v-if="isProducersLoading">
+              <n-skeleton v-for="i in 5" :key="i" style="margin-top: 5px" />
+            </div>
+            <n-checkbox-group
+              :max="1"
+              v-else
+              @update:value="(v) => producerSelectHandler(v)"
+              :default-value="query.searchBy ? [query.searchBy] : []"
+            >
+              <n-space item-style="display: flex;" vertical>
+                <n-checkbox
+                  v-for="(data, index) in allProducers"
+                  :key="index"
+                  :value="data"
+                  :label="data"
+                />
+              </n-space>
+            </n-checkbox-group>
           </div>
           <div class="filter-headers">
             <h3>Cena</h3>
           </div>
           <div class="price-range-box">
-            <n-input class="search-box" placeholder="Od" round> </n-input>zł
+            <n-input
+              class="search-box"
+              placeholder="Od"
+              :default-value="query.priceFrom"
+              @update:value="
+                (v) =>
+                  v.length > 0 ? (query.priceFrom = v) : (query.priceFrom = undefined)
+              "
+              round
+            >
+            </n-input
+            >zł
             <fa class="icon" icon="minus" />
-            <n-input class="search-box" placeholder="Do" round> </n-input>zł
+            <n-input
+              class="search-box"
+              placeholder="Do"
+              :default-value="query.priceTo"
+              @update:value="
+                (v) => (v.length > 0 ? (query.priceTo = v) : (query.priceTo = undefined))
+              "
+              round
+            >
+            </n-input
+            >zł
           </div>
-          <div class="filter-headers">
-            <h3>Status</h3>
-          </div>
-          <div class="checkboxes-box">
-            <n-space item-style="display: flex;" vertical>
-              <n-checkbox value="Promocja" label="Promocja" />
-              <n-checkbox value="Wyprzedaz" label="Wyprzedaż" />
-              <n-checkbox value="Polecamy" label="Polecamy" />
-            </n-space>
-          </div>
+          <n-button
+            v-if="!(isLoading && isProducersLoading)"
+            class="filter-button"
+            @click="onFilterClick()"
+          >
+            Filtruj
+          </n-button>
         </div>
       </div>
 
-      <n-spin v-if="isLoading" class="spinner" size="large" />
-
-      <div v-else class="products-box">
+      <div class="products-box" v-if="isLoading">
+        <n-skeleton v-for="i in 9" :key="i" class="skeletonProduct" />
+      </div>
+      <div class="products-box" v-else>
         <div class="products-header">
           <h2>Produkty</h2>
+          <n-select
+            placeholder="Wybierz sortowanie"
+            :options="optionsSelect"
+            @update:value="(v) => pickSortType(v)"
+            class="selector"
+          />
           <n-pagination :page-count="pageCount" v-model:page="pager" />
         </div>
 
-        <div
-          class="product"
+        <product-box
           v-for="(data, index) in allProducts"
+          :item="data"
           v-bind:key="index"
-        >
-          <div @click="setCurrentItem(data);$router.push({ name: 'singleProduct' })">
-            <div class="product-img-box">
-              <div
-                class="product-img-holder"
-                v-for="(sImg, index) in data.attachments.slice(0, 1)"
-                :key="index"
-              >
-                <img :src="sImg.blob" alt="imgNotFound" />
-              </div>
-            </div>
-            <div class="product-description-box">
-              <h3>{{ data.name }}</h3>
-              <p
-                v-for="(spec, index) in data.specifications.slice(0, 4)"
-                :key="index"
-              >
-                {{ `${spec.keyName} : ${spec.keyValue}` }}
-              </p>
-            </div>
-            <div class="product-price">
-              <span class="price">{{ `${data.price} zł` }}</span>
-            </div>
-          </div>
-          <n-button class="cartBtn" @click="addToCart(data)">
-            <fa icon="basket-shopping" />
-          </n-button>
-        </div>
+        />
       </div>
     </div>
   </div>
 </template>
-
-<script>
+<script setup>
+import ProductBox from "../Product/ProductBox.vue";
 import {
   NInput,
   NCheckbox,
@@ -139,87 +99,144 @@ import {
   NCard,
   NPagination,
   NButton,
+  NSelect,
   NSpin,
+  NCheckboxGroup,
+  NSkeleton,
 } from "naive-ui";
+
 import axios from "axios";
-import { ref } from "@vue/reactivity";
-import { inject, onMounted, watch } from "@vue/runtime-core";
+import { reactive, ref } from "@vue/reactivity";
+import { inject, onMounted, onUpdated, watch } from "@vue/runtime-core";
+import router from "../../router";
+import { useRoute } from "vue-router";
+import { useToast } from "vue-toastification";
+
+const props = defineProps({
+  id: {
+    required: true,
+  },
+});
+
+const { searchBy, priceFrom, priceTo, sort } = useRoute().query;
+
+const query = ref({ searchBy, priceFrom, priceTo, sort });
 
 const allProducts = ref([]);
-const categorySetup = ref(-1);
-
+const allProducers = ref([]);
+const categorySetup = ref(props.id);
+const isProducersLoading = ref(false);
 const pager = ref(1);
 const pageCount = ref(0);
 const isLoading = ref(true);
+const toast = useToast();
+
+const producerSelectHandler = (v) => {
+  query.value.searchBy = v[0];
+};
+
+const optionsSelect = [
+  {
+    label: "Rosnąco po cenie",
+    value: "ASC",
+  },
+  {
+    label: "Malejąco po cenie",
+    value: "DESC",
+  },
+];
 
 const getAllProducts = async () => {
   isLoading.value = true;
-  const url =
-    categorySetup.value > 0
-      ? `/api/v1/product?page=${pager.value - 1}&limit=9&categoryId=${
-          categorySetup.value
-        }`
-      : "/api/v1/product?page=" + (pager.value - 1) + "&limit=9";
+  const url = `/api/v1/product`;
 
   const data = await axios({
     method: "get",
     url: url,
+    params: {
+      page: pager.value - 1,
+      limit: 9,
+      categoryId: categorySetup.value,
+      ...query.value,
+    },
   });
 
   const { list, totalCount } = data.data;
 
   pageCount.value = Math.ceil(totalCount / 9);
   allProducts.value = list;
-  isLoading.value = false;
+};
+
+const getAllProducers = async () => {
+  isProducersLoading.value = true;
+  const url = `/api/v1/product/producer?parentCategoryId=${categorySetup.value}`;
+  const response = await axios({
+    method: "get",
+    url: url,
+  });
+
+  allProducers.value = response.data["list"];
+};
+
+const pickSortType = (event) => {
+  query.value["sortBy"] = "price";
+  query.value["sort"] = event;
+  router.replace({
+    params: { id: props.id },
+    query: {
+      ...query.value,
+    },
+  });
+  getAllProducts()
+    .catch((exc) => {
+      toast.error("Error, " + exc.response?.data.message, { timeout: 2000 });
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
+};
+
+const onFilterClick = () => {
+  router.replace({
+    params: { id: props.id },
+    query: {
+      ...query.value,
+    },
+  });
+  getAllProducts()
+    .catch((exc) => {
+      toast.error("Error, " + exc.response?.data.message, { timeout: 2000 });
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
 };
 
 watch(pager, (value, preValue) => {
-  getAllProducts();
+  getAllProducts().finally(() => {
+    isLoading.value = false;
+  });
 });
 
-export default {
-  setup({ categoryId }) {
-    categorySetup.value = categoryId;
-    onMounted(async () => {
-      await getAllProducts();
-    });
+watch(props, () => {
+  categorySetup.value = props.id;
+  getAllProducts().finally(() => {
+    isLoading.value = false;
+  });
+  getAllProducers().finally(() => {
+    isProducersLoading.value = false;
+  });
+});
 
-    const { addToCart } = inject("cart");
-	const {setCurrentItem} = inject("currentItem");
-
-    getAllProducts();
-    return {
-      allProducts,
-      pager,
-      pageCount,
-      addToCart,
-      isLoading,
-	  setCurrentItem
-    };
-  },
-  watch: {
-    categoryId: (newValue, oldValue) => {
-      categorySetup.value = newValue;
-      getAllProducts();
-    },
-  },
-  components: {
-    NInput,
-    NCheckbox,
-    NSpace,
-    NCard,
-    NPagination,
-    NButton,
-    NSpin,
-  },
-  props: {
-    categoryId: {
-      default: -1,
-    },
-  },
-};
+onMounted(() => {
+  getAllProducts().finally(() => {
+    isLoading.value = false;
+  });
+  getAllProducers().finally(() => {
+    isProducersLoading.value = false;
+  });
+});
 </script>
-
 <style lang="scss" scoped>
 .products-content-wrapper {
   display: flex;
@@ -235,6 +252,16 @@ export default {
   transform: scale(2.5);
 }
 
+.skeletonProduct {
+  width: 30%;
+  min-width: 300px;
+  border-radius: 10px;
+  position: relative;
+  margin: 0 0.2rem;
+  margin-bottom: 0.2rem;
+  padding: 1rem;
+  min-height: 250px;
+}
 .products-box {
   display: flex;
   width: 60%;
@@ -247,6 +274,11 @@ export default {
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+
+  .selector {
+    width: 20%;
+  }
 }
 
 .product {
@@ -276,15 +308,14 @@ export default {
   }
 
   &:hover {
-    box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 8px 0px,
-      rgba(0, 0, 0, 0.1) 0px 0px 2px 1px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 8px 0px, rgba(0, 0, 0, 0.1) 0px 0px 2px 1px;
     transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0s;
     cursor: pointer;
 
-    .cartBtn{
+    .cartBtn {
       display: flex;
-      
-      &:hover{
+
+      &:hover {
         background-color: rgb(18, 172, 44);
         color: white;
       }
@@ -330,6 +361,7 @@ export default {
 
 .filter-box {
   width: 100%;
+  display: flex;
   flex-direction: column;
   padding: 1rem;
   border: 1px solid rgb(199, 199, 199);
@@ -383,7 +415,11 @@ h3 {
   align-items: center;
   width: 100%;
 }
-
+.filter-button {
+  border-radius: 20px;
+  width: 100px;
+  margin: 11px 0px 0px auto;
+}
 .producents-checkboxes-box {
   width: 100%;
 }

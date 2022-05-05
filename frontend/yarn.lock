@@ -5520,6 +5520,13 @@
   "resolved" "https://registry.npmjs.org/javascript-stringify/-/javascript-stringify-2.1.0.tgz"
   "version" "2.1.0"
 
+"javascript-time-ago@^2.3.13":
+  "integrity" "sha512-LiNqRLERXpePGLejdqjbxfMkFlwx+2RDz21Jfw/3l2mH20fTa6nAtwOFQmAK5l0SfaV7HvixJgTCxyph9VmG1Q=="
+  "resolved" "https://registry.npmjs.org/javascript-time-ago/-/javascript-time-ago-2.3.13.tgz"
+  "version" "2.3.13"
+  dependencies:
+    "relative-time-format" "^1.0.7"
+
 "jest-diff@^27.5.1":
   "integrity" "sha512-m0NvkX55LDt9T4mctTEgnZk3fmEg3NRYutvMPWM/0iPnkFj2wIeF45O1718cMSOFO1vINkqmxqD8vE37uTEbqw=="
   "resolved" "https://registry.npmjs.org/jest-diff/-/jest-diff-27.5.1.tgz"
@@ -7550,6 +7557,11 @@
   "resolved" "https://registry.npmjs.org/relateurl/-/relateurl-0.2.7.tgz"
   "version" "0.2.7"
 
+"relative-time-format@^1.0.7":
+  "integrity" "sha512-bbDLk8h09IdqvlhofjBMTgDzn4ESw+gvV+/KQ2YRjSbWvggI91AIKn/gFURWNGwMtaVZpJvfE5824Dy7AyhPoQ=="
+  "resolved" "https://registry.npmjs.org/relative-time-format/-/relative-time-format-1.0.8.tgz"
+  "version" "1.0.8"
+
 "remove-trailing-separator@^1.0.1":
   "integrity" "sha1-wkvOKig62tW8P1jg1IJJuSN52O8="
   "resolved" "https://registry.npmjs.org/remove-trailing-separator/-/remove-trailing-separator-1.1.0.tgz"
@@ -8980,6 +8992,11 @@
   "version" "0.2.12"
   dependencies:
     "evtd" "^0.2.2"
+
+"vue-cookies@^1.8.1":
+  "integrity" "sha512-PDq1EaiRRyau5PBQVscXboHW+iWtcG4wRY2UKIz1j0nrjb3KESRU1PUyNUDdOajAwy4RH1IfiNR0suhWRXQdrA=="
+  "resolved" "https://registry.npmjs.org/vue-cookies/-/vue-cookies-1.8.1.tgz"
+  "version" "1.8.1"
 
 "vue-eslint-parser@^7.10.0":
   "integrity" "sha512-qh3VhDLeh773wjgNTl7ss0VejY9bMMa0GoDG2fQVyDzRFdiU3L7fw74tWZDHNQXdZqxO3EveQroa9ct39D2nqg=="

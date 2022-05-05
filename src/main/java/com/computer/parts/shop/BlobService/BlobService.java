@@ -4,79 +4,84 @@ import com.azure.core.implementation.util.BinaryDataContent;
 import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobServiceClient;
-import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Service;
-
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
 @Log4j2
 public class BlobService {
-    private final BlobServiceClient blobClient;
 
+  private final BlobServiceClient blobClient;
 
-    public String uploadBlob(List<String> data){
+  public String uploadBlob(List<String> data) {
+    StringBuilder stringBuilder = new StringBuilder();
 
-        StringBuilder stringBuilder = new StringBuilder();
+    UUID uuid = UUID.randomUUID();
 
-        UUID uuid = UUID.randomUUID();
+    String filename = uuid + ".txt";
 
-        String filename = uuid + ".txt";
+    BlobClient images = blobClient
+      .getBlobContainerClient("images")
+      .getBlobClient(filename);
 
-        BlobClient images = blobClient.getBlobContainerClient("images").getBlobClient(filename);
-
-        for(String buff : data)
-        {
-            stringBuilder.append(buff);
-            stringBuilder.append("\n");
-        }
-
-        BinaryData binaryData = BinaryData.fromBytes(stringBuilder.toString().getBytes());
-
-        images.upload(binaryData);
-
-        return filename;
+    for (String buff : data) {
+      stringBuilder.append(buff);
+      stringBuilder.append("\n");
     }
 
-    public String uploadBlob(List<String> data, String filename){
+    BinaryData binaryData = BinaryData.fromBytes(
+      stringBuilder.toString().getBytes()
+    );
 
-        StringBuilder stringBuilder = new StringBuilder();
+    images.upload(binaryData);
 
-        BlobClient images = blobClient.getBlobContainerClient("images").getBlobClient(filename);
+    return filename;
+  }
 
-        for(String buff : data)
-        {
-            stringBuilder.append(buff);
-            stringBuilder.append("\n");
-        }
+  public String uploadBlob(List<String> data, String filename) {
+    StringBuilder stringBuilder = new StringBuilder();
 
-        BinaryData binaryData = BinaryData.fromBytes(stringBuilder.toString().getBytes());
+    BlobClient images = blobClient
+      .getBlobContainerClient("images")
+      .getBlobClient(filename);
 
-        images.upload(binaryData, true);
-
-        return filename;
+    for (String buff : data) {
+      stringBuilder.append(buff);
+      stringBuilder.append("\n");
     }
 
-    public List<String> getBlobAttachments(String fileName){
-        BlobClient images = blobClient.getBlobContainerClient("images").getBlobClient(fileName);
+    BinaryData binaryData = BinaryData.fromBytes(
+      stringBuilder.toString().getBytes()
+    );
 
-        BinaryData binaryData = images.downloadContent();
-        byte[] bytes = binaryData.toBytes();
+    images.upload(binaryData, true);
 
-        String s = new String(bytes);
-        return Arrays.stream(s.split("\\n")).toList();
-    }
+    return filename;
+  }
 
-    public void removeBlob(String fileName){
-        BlobClient images = blobClient.getBlobContainerClient("images").getBlobClient(fileName);
+  public List<String> getBlobAttachments(String fileName) {
+    BlobClient images = blobClient
+      .getBlobContainerClient("images")
+      .getBlobClient(fileName);
 
-        images.delete();
-    }
+    BinaryData binaryData = images.downloadContent();
+    byte[] bytes = binaryData.toBytes();
 
+    String s = new String(bytes);
+    return Arrays.stream(s.split("\\n")).toList();
+  }
 
+  public void removeBlob(String fileName) {
+    BlobClient images = blobClient
+      .getBlobContainerClient("images")
+      .getBlobClient(fileName);
+
+    images.delete();
+  }
 }

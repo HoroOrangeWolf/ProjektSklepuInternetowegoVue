@@ -4,38 +4,37 @@ import com.computer.parts.shop.Attachment.Attachment;
 import com.computer.parts.shop.Category.Category;
 import com.computer.parts.shop.Product.Product;
 import com.computer.parts.shop.Specification.Specification;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.Column;
+import javax.persistence.Lob;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.Column;
-import javax.persistence.Lob;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 public class ProductDTO {
-    private Long id;
 
-    private String name;
+  private Long id;
 
-    private String producer;
+  private String name;
 
-    private BigDecimal price;
+  private String producer;
 
-    private Integer count = 0;
+  private BigDecimal price;
 
-    private String description;
+  private Double avgOpinion;
 
-    private Category category;
+  private String description;
 
-    private List<Attachment> attachments = new ArrayList<>();
+  private Category category;
 
-    private List<Specification> specifications = new ArrayList<>();
+  private List<Attachment> attachments = new ArrayList<>();
 
+  private List<Specification> specifications = new ArrayList<>();
 }

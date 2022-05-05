@@ -10,12 +10,12 @@ import ProductTable from '../components/ProductTable.vue'
 import OrderManager from '../components/OrderManager.vue'
 import RegisterAccount from '../components/RegisterAccount.vue'
 import OrderMain from '../components/Order/OrderMain.vue'
-import OrderProductList from '../components/Order/OrderProductList.vue'
+import Cart from '../components/Order/Cart.vue'
 import OrderSummary from '../components/Order/OrderSummary.vue'
 import OrderPayment from '../components/Order/OrderPayment.vue'
 import HomePageContent from '../components/Home/HomePageContent.vue'
 import HomePageProducts from '../components/Home/HomePageProducts.vue'
-import ProductCard from '../components/ProductCard/ProductCard.vue'
+import ProductCard from '../components/Product/ProductCard.vue'
 import OrderStatus from '../components/Order/OrderStatus.vue'
 import UserAccount from '../components/User/UserAccount.vue'
 import UserOrder from '../components/User/UserOrder.vue'
@@ -23,7 +23,7 @@ import UserOpinions from '../components/User/UserOpinions.vue'
 import NotAuthorized from '../components/ErrorPages/NotAuthorized.vue'
 
 //User model
-import userModel, {isLoaded, getAutheticatedUser} from '../components/User/GlobalVariables'
+import userModel, {isLoaded, getAutheticatedUser} from '../components/GlobalContext/GlobalVariables'
 
 
 const routes = [
@@ -39,17 +39,19 @@ const routes = [
         }
       },
       {
-        path: 'products',
+        path: 'products/:id',
         name: 'products',
         components: {
           default: HomePageProducts
         },
-        props: true
+        props: true,
       },
       {
         path: '/cart',
         name: 'cart',
-        component: OrderProductList
+        components: {
+          default:  Cart
+        }
       },
       {
         path: '/user',
@@ -68,7 +70,37 @@ const routes = [
             components: {
               default: UserOpinions
             }
-          }
+          },
+          {
+            path: 'order',
+            name: 'Order',
+            component: OrderMain,
+            props: true,
+            meta: {authorize: ['USER']},
+            children: [
+              {
+                path: 'summary',
+                name: 'summary',
+                components: {
+                  default: OrderSummary
+                }
+              },
+              {
+                path: 'payment',
+                name: 'payment',
+                components: {
+                  default: OrderPayment
+                },
+                props: true
+              },
+              {
+                path: 'status',
+                components: {
+                  default: OrderStatus
+                }
+              }
+            ]
+          },
         ]
       },
       {
@@ -79,42 +111,12 @@ const routes = [
         }
       },
       {
-        path: 'p',
-		name: 'singleProduct',
+        path: 'p/:id',
+        name: 'singleProduct',
         components: {
           default: ProductCard
         },
-		props: {newsletterPopup: false}
-      }
-    ]
-  },
-  {
-    path: '/user/order',
-    name: 'Order',
-    component: OrderMain,
-    props: true,
-    meta: {authorize: ['USER']},
-    children: [
-      {
-        path: 'summary',
-        name: 'summary',
-        components: {
-          default: OrderSummary
-        }
-      },
-      {
-        path: 'payment',
-        name: 'payment',
-        components: {
-          default: OrderPayment
-        },
-        props: true
-      },
-      {
-        path: 'status',
-        components: {
-          default: OrderStatus
-        }
+        props: true,
       }
     ]
   },
@@ -177,12 +179,11 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next)=>{
 
+  const {authorize} = to.meta;
   if(!isLoaded()){
     await getAutheticatedUser();
   }
-  const {authorize} = to.meta;
   if(authorize){
-    console.log(userModel.value, to.meta);
     if(userModel.value.role === 'GUEST' && !authorize.find((f)=>f==='GUEST')){
       return next({path: '/login'});
     }

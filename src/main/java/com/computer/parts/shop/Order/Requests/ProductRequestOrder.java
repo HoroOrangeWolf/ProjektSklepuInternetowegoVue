@@ -10,6 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ProductRequestOrder {
-    private Long id;
-    private Integer count;
+
+  private Long id;
+  private Integer count;
 }

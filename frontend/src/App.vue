@@ -1,22 +1,22 @@
-
 <template>
-  <global-context>
-    <router-view/>
-  </global-context>
+  <n-loading-bar-provider>
+    <global-context>
+      <router-view />
+    </global-context>
+  </n-loading-bar-provider>
 </template>
 
 <script>
-import GlobalContext from "./components/User/GlobalContext.vue"
-
-
+import { NLoadingBarProvider } from "naive-ui";
+import GlobalContext from "./components/GlobalContext/GlobalContext.vue";
 
 export default {
-  setup() {
-  },
+  setup() {},
   components: {
-    GlobalContext
-  }
-}
+    GlobalContext,
+    NLoadingBarProvider,
+  },
+};
 </script>
 
 <style lang="scss">

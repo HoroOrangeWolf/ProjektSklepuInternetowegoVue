@@ -1,3 +1,32 @@
+<script setup>
+import { NCarousel, NSkeleton } from "naive-ui";
+import { inject, onMounted } from "@vue/runtime-core";
+import { ref } from "@vue/reactivity";
+import axios from "axios";
+
+const isProductLoading = ref(false);
+const products = ref([]);
+const promotionProducts = ref([]);
+
+const fetchData = async () => {
+  const data = await axios({
+    method: "get",
+    url: "/api/v1/product?limit=8",
+  });
+
+  const { list } = data.data;
+  products.value = list;
+  promotionProducts.value = list.slice(-4).reverse();
+};
+
+onMounted(() => {
+  isProductLoading.value = true;
+  fetchData().finally(() => {
+    isProductLoading.value = false;
+  });
+});
+</script>
+
 <template>
   <div>
     <div class="main-content-box">
@@ -12,83 +41,54 @@
         <h2>Polecamy</h2>
       </div>
       <div class="products">
-        <div
-          class="grid-products-elements"
-          v-for="(product, index) in products"
-          :key="index"
-          @click="
-            setCurrentItem(product);
-            $router.push({ name: 'singleProduct' });
-          "
-        >
-          <img class="productImg" :src="product.attachments[0].blob" alt="" />
-          <p>{{ product.name }}</p>
-		  <p style="font-weight: bold; font-size: 15px;">{{product.price}}zł</p>
+        <div v-if="isProductLoading" class="productsContainer">
+          <n-skeleton
+            text
+            v-for="index in 8"
+            :key="index"
+            style="border-radius: 5px"
+            :height="120"
+          />
         </div>
-      </div>
-      <div class="promotions-header">
-        <h2>Promocje</h2>
-      </div>
-      <div class="promotions-box">
-        <div
-          class="promotion"
-          v-for="(prom, index) in promotionProducts"
-          :key="index"
-          @click="
-            setCurrentItem(prom);
-            $router.push({ name: 'singleProduct' });
-          "
-        >
-          <img class="productImg" :src="prom.attachments[0].blob" alt="" />
-          <h3>Wielka promocja!!</h3>
-          <p>Giga zniżka</p>
-		  <p style="word-wrap:break-word">{{prom.name}}</p>
-		  <del style="color: rgba(128,128,128,1)">{{prom.price * 1.2}}zł</del>
-		  <p style="font-weight: bold">{{prom.price}}zł</p>
+        <div v-else class="productsContainer">
+          <div
+            class="grid-products-elements"
+            v-for="(product, index) in products"
+            :key="index"
+            @click="
+              $router.push({ name: 'singleProduct', params: { id: product.id + '' } })
+            "
+          >
+            <img class="productImg" :src="product.attachments[0].blob" alt="" />
+            <p>{{ product.name }}</p>
+            <p style="font-weight: bold; font-size: 15px">{{ product.price }}zł</p>
+          </div>
+        </div>
+        <div class="promotions-header">
+          <h2>Promocje</h2>
+        </div>
+        <div class="promotions-box">
+          <div v-if="isProductLoading" style="width: 100%" class="promotions-box">
+            <n-skeleton text v-for="index in 4" :key="index" style="height: 120px" />
+          </div>
+          <div
+            class="promotion"
+            v-for="(prom, index) in promotionProducts"
+            :key="index"
+            @click="$router.push({ name: 'singleProduct' })"
+          >
+            <img class="productImg" :src="prom.attachments[0].blob" alt="" />
+            <h3>Wielka promocja!!</h3>
+            <p>Giga zniżka</p>
+            <p style="word-wrap: break-word">{{ prom.name }}</p>
+            <del style="color: rgba(128, 128, 128, 1)">{{ prom.price * 1.2 }}zł</del>
+            <p style="font-weight: bold">{{ prom.price }}zł</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<script>
-import { NCarousel } from "naive-ui";
-import { inject, onMounted } from "@vue/runtime-core";
-import { ref } from "@vue/reactivity";
-import axios from "axios";
-
-export default {
-  setup() {
-    const products = ref([]);
-    const promotionProducts = ref([]);
-    const { setCurrentItem } = inject("currentItem");
-    onMounted(() => {
-      fetchData();
-    });
-
-    const fetchData = async () => {
-      const data = await axios({
-        method: "get",
-        url: "/api/v1/product?limit=8",
-      });
-
-      const { list } = data.data;
-      products.value = list;
-      promotionProducts.value = list.slice(-4).reverse();
-    };
-
-    return {
-      fetchData,
-      products,
-      setCurrentItem,
-      promotionProducts,
-    };
-  },
-  components: {
-    NCarousel,
-  },
-};
-</script>
 
 <style scoped lang="scss">
 .offerts-box {
@@ -130,19 +130,15 @@ export default {
 
 .products-header,
 .promotions-header,
-.footer-header {
-  width: 80%;
-  text-align: left;
-}
-
 .products {
-  
   width: 80%;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  
-  gap: 5px;
+
+  .productsContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 5px;
+  }
 }
 
 .grid-products-elements {
@@ -172,8 +168,6 @@ export default {
   gap: 5px;
   font-size: 15px;
   flex: 1;
-  
-  
 }
 
 .promotion {
@@ -186,25 +180,22 @@ export default {
   border-radius: 10px;
   padding: 0px;
   width: 25%;
-  
 
   &:hover {
     border: 2px solid rgb(117, 117, 117);
   }
 
-  p{
-	  width: 80%;
+  p {
+    width: 80%;
   }
-  
 }
 
 .productImg {
   width: 200px;
   height: 200px;
-  
 }
 
-h2{
-	padding: 10px 0;
+h2 {
+  padding: 10px 0;
 }
 </style>

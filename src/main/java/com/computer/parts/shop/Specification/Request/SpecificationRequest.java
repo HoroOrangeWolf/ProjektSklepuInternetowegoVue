@@ -10,7 +10,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SpecificationRequest {
-    private Long id = null;
-    private String keyName;
-    private String keyValue;
+
+  private Long id = null;
+  private String keyName;
+  private String keyValue;
 }
