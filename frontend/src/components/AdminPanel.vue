@@ -15,25 +15,25 @@ const { role, email } = userModel.value;
         <li>
           <router-link to="/admin">
             <fa class="icon" icon="users" />
-            Users
+            Użytkownicy
           </router-link>
         </li>
         <li>
           <router-link to="/admin/category">
             <fa class="icon" icon="book-bookmark" />
-            Categories
+            Kategorie
           </router-link>
         </li>
         <li>
           <router-link to="/admin/product">
             <fa class="icon" icon="book-bookmark" />
-            Products
+            Produkty
           </router-link>
         </li>
         <li>
           <router-link to="/admin/orders">
             <fa class="icon" icon="book-bookmark" />
-            Orders
+            Zamówienia
           </router-link>
         </li>
       </ul>

@@ -6,6 +6,7 @@ import com.computer.parts.shop.Exceptions.BadRequestException;
 import com.computer.parts.shop.JWT.JWTService;
 import com.computer.parts.shop.Pageable.Pageable;
 import com.computer.parts.shop.User.Request.PasswordChange;
+import com.computer.parts.shop.User.Request.PersonalDataUpdate;
 import com.computer.parts.shop.User.Response.AddressDTO;
 import com.computer.parts.shop.User.Response.UserDTO;
 import com.nimbusds.oauth2.sdk.http.HTTPRequest;
@@ -18,6 +19,7 @@ import java.util.TreeMap;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.security.oauth2.client.EnableOAuth2Sso;
 import org.springframework.data.domain.Sort;
@@ -179,7 +181,7 @@ public class UserController {
 
   @PutMapping("/address")
   public void updateAddress(
-    @RequestBody Address address,
+    @Valid @RequestBody AddressDTO address,
     Authentication authentication
   ) {
     if (authentication == null) throw new BadRequestException(
@@ -190,9 +192,12 @@ public class UserController {
 
     Address userAddress = principal.getUserAddress();
 
-    address.setId(userAddress.getId());
+    userAddress.setCity(address.getCity());
+    userAddress.setHomeNumber(address.getHomeNumber());
+    userAddress.setPostCode(address.getPostCode());
+    userAddress.setStreet(address.getStreet());
 
-    addressService.updateAddress(address);
+    addressService.updateAddress(userAddress);
   }
 
   @PutMapping("/password")
@@ -215,7 +220,7 @@ public class UserController {
 
   @PutMapping("")
   public void updateUser(
-    @RequestBody UserDTO userDTO,
+    @Valid @RequestBody PersonalDataUpdate userDTO,
     Authentication authentication
   ) {
     if (authentication == null) throw new BadRequestException(

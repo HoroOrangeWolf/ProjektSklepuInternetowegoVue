@@ -16,6 +16,7 @@ const clearModel = () =>{
         isAuthenticated: false,
         role: 'GUEST'
     };
+    isLoadedUser.value = false;
 }
 
 const getAutheticatedUser = async () => {

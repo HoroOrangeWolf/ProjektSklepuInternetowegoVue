@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.Length;
 
 @Getter
 @Setter
@@ -11,5 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PasswordChange {
 
+  @Length(min = 6, max = 30)
   private String newPassword;
 }

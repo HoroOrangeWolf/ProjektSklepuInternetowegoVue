@@ -10,10 +10,24 @@ import Toast from "vue-toastification";
 import VueCookies from 'vue-cookies';
 import pl from 'javascript-time-ago/locale/pl.json';
 import TimeAgo from 'javascript-time-ago';
+import axios from 'axios'
+import { clearModel } from './components/GlobalContext/GlobalVariables'
 
 TimeAgo.addDefaultLocale(pl)
 library.add(fas);
 
+
+axios.interceptors.response.use((response)=>{
+    return response;
+},
+(error)=>{
+    if(error.response.status === 403){
+        clearModel();
+        window.location ="/";
+    }else{
+        return Promise.reject(error);
+    }
+})
 
 
 createApp(App)

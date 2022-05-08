@@ -67,10 +67,10 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         if (authentication != null) {
           User user = (User) authentication.getPrincipal();
           String access_token = jwtService
-            .generateJWT(user.getEmail(), (long) 1000 * 60 * 60 * 24)
+            .generateJWT(user.getEmail(), 1000 * 60 * 60 * 24L)
             .getToken();
           String refresh_token = jwtService
-            .generateJWT(user.getEmail(), 1000 * 60 * 60 * 24 * 7L)
+            .generateJWT(user.getEmail(), 1000 * 60 * 60 * 24L * 30)
             .getToken();
 
           Cookie cookie_token = new Cookie("access_token", access_token);
@@ -108,8 +108,12 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         Arrays
           .stream(cookies)
           .forEach(f -> {
-            f.setMaxAge(0);
-            response.addCookie(f);
+            Cookie cookie = new Cookie(f.getName(), null);
+            cookie.setMaxAge(0);
+            cookie.setDomain("localhost");
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            response.addCookie(cookie);
           });
         response.sendError(HttpServletResponse.SC_FORBIDDEN);
         return;
@@ -117,7 +121,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         access_token =
           jwtService.generateJWT(
             refresh_token.getEmail(),
-            (long) 1000 * 60 * 60 * 24
+            1000 * 60 * 60 * 24L
           );
         refresh_token =
           jwtService.generateJWT(
