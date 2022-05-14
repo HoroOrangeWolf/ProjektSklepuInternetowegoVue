@@ -7,6 +7,7 @@ const page = ref(0);
 const maxPage = ref(1);
 const orders = ref([]);
 const isLoading = ref(false);
+const toast = useToast();
 
 const loadData = async () => {
   isLoading.value = true;
@@ -18,6 +19,24 @@ const loadData = async () => {
   const { totalCount, list } = response.data;
   maxPage.value = Math.ceil(totalCount / 20);
   orders.value = list;
+};
+
+const cancelOrder = (id) => {
+  isLoading.value = true;
+  axios({
+    method: "put",
+    url: "api/v1/order/" + id + "/cancel/user",
+  })
+    .then(() => {
+      toast.success("Zamówienie zostało anulowane.", { timeout: 2000 });
+      return loadData();
+    })
+    .catch((exc) => {
+      toast.error("Error, " + exc.response?.data.message, { timeout: 2000 });
+    })
+    .finally(() => {
+      isLoading.value = false;
+    });
 };
 
 onMounted(() => {
@@ -140,6 +159,15 @@ const mapDeliveryStatus = (type) => {
                   </template>
                 </n-button>
               </a>
+              <n-button
+                v-if="
+                  data.paymentType === 'PAYPAL' &&
+                  data.paymentStatus === 'WAITING_FOR_PAYMENT'
+                "
+                @click="cancelOrder(data.id)"
+              >
+                Anuluj zamówienie
+              </n-button>
             </div>
           </div>
         </div>
@@ -150,6 +178,7 @@ const mapDeliveryStatus = (type) => {
 
 <script>
 import { NList, NListItem, NButton, NSkeleton } from "naive-ui";
+import { useToast } from "vue-toastification";
 
 export default {
   components: {
@@ -189,7 +218,6 @@ export default {
         bottom: 0;
         display: flex;
         justify-content: space-between;
-
         a {
           text-decoration: none;
         }

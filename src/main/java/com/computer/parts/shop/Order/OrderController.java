@@ -1,10 +1,13 @@
 package com.computer.parts.shop.Order;
 
+import com.computer.parts.shop.Exceptions.BadRequestException;
 import com.computer.parts.shop.Order.Requests.OrderRequest;
 import com.computer.parts.shop.Order.Requests.OrderResponse;
 import com.computer.parts.shop.Pageable.Pageable;
+import com.computer.parts.shop.PayPal.PayPalService;
 import com.computer.parts.shop.User.User;
 import com.computer.parts.shop.User.UserRepository;
+import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
 import java.io.IOException;
 import java.util.*;
@@ -30,6 +33,7 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
   private OrderService orderService;
+  private PayPalService payPalService;
   private UserRepository userRepository;
   private static final String BASE_URL = "http://localhost:8081/api/v1/order";
   private static final String SUCCESS_LINK = "/pay/success";
@@ -49,6 +53,11 @@ public class OrderController {
       BASE_URL + SUCCESS_LINK,
       BASE_URL + CANCEL_LINK
     );
+  }
+
+  @PutMapping("/{id}/cancel/user")
+  public void cancelOrder(@PathVariable("id") Long id){
+      orderService.cancelOrder(id);
   }
 
   @PutMapping("/{orderId}/admin")
@@ -121,6 +130,8 @@ public class OrderController {
           map.put("paymentType", f.getPaymentType());
           map.put("creationTime", f.getDate());
           map.put("totalPrice", f.getTotalPrice());
+          map.put("payLink", f.getPayLink());
+          map.put("deliveryType", f.getDeliveryType());
           return map;
         })
         .toList()
@@ -185,9 +196,11 @@ public class OrderController {
             map.put("email", f.getUser().getEmail());
             map.put("remarks", f.getRemarks());
             map.put("paymentStatus", f.getPaymentStatus());
+            map.put("deliveryType", f.getDeliveryType());
             map.put("shipmentStatus", f.getShipmentStatus());
             map.put("paymentType", f.getPaymentType());
             map.put("creationTime", f.getDate());
+            map.put("payLink", f.getPayLink());
             map.put("totalPrice", f.getTotalPrice());
             return map;
           })
@@ -209,9 +222,11 @@ public class OrderController {
     stringObjectMap.put("email", order.getUser().getEmail());
     stringObjectMap.put("paymentStatus", order.getPaymentStatus());
     stringObjectMap.put("remarks", order.getRemarks());
+    stringObjectMap.put("deliveryType", order.getDeliveryType());
     stringObjectMap.put("shipmentStatus", order.getShipmentStatus());
     stringObjectMap.put("creationTime", order.getDate());
     stringObjectMap.put("totalPrice", order.getTotalPrice());
+    stringObjectMap.put("payLink", order.getPayLink());
 
     return new Pageable<>(1L, List.of(stringObjectMap));
   }

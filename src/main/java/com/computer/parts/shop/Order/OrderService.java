@@ -24,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.computer.parts.shop.Order.PaymentStatus.*;
+
 @Service
 @Transactional(rollbackFor = Exception.class)
 @AllArgsConstructor
@@ -136,10 +138,10 @@ public class OrderService {
       .getOrderByPaymentId(paymentId)
       .orElseThrow(() -> new IllegalStateException("Order not found!"));
 
-    if (order.getPaymentStatus() != PaymentStatus.SUCCESS) {
+    if (order.getPaymentStatus() != SUCCESS) {
       PaymentStatus paymentStatus = payment.getState().equals("approved")
-        ? PaymentStatus.SUCCESS
-        : PaymentStatus.DENIED;
+        ? SUCCESS
+        : DENIED;
 
       order.setPaymentStatus(paymentStatus);
       order.setPayerId(payerId);
@@ -185,8 +187,8 @@ public class OrderService {
     if (order.getPaymentType() == PaymentType.ON_SITE) {
       order.setPaymentStatus(
         shipmentStatus == ShipmentStatus.DELIVERED
-          ? PaymentStatus.SUCCESS
-          : PaymentStatus.WAITING_FOR_PAYMENT
+          ? SUCCESS
+          : WAITING_FOR_PAYMENT
       );
     }
 
@@ -236,5 +238,19 @@ public class OrderService {
 
   public Long countOrdersByUserId(Long userId) {
     return orderRepository.countOrderByUserId(userId);
+  }
+
+  public void cancelOrder(Long id) {
+    Optional<Order> repositoryById = orderRepository.findById(id);
+
+    if(repositoryById.isEmpty())
+      throw new BadRequestException("Order not found");
+
+    Order order = repositoryById.get();
+
+    if(order.getPaymentStatus() != WAITING_FOR_PAYMENT)
+      throw new BadRequestException("You can not cancel this order");
+
+    order.setPaymentStatus(CANCELED);
   }
 }

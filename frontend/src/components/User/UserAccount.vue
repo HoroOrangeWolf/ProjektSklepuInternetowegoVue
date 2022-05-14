@@ -26,6 +26,18 @@
               <h2>Twoje opinie</h2>
             </n-button>
           </n-list-item>
+		   <n-list-item class="linkContainer">
+            <n-button
+              class="link"
+              type="text"
+              @click="$router.push({ path: '/user/settings' })"
+            >
+              <template #icon>
+                <fa icon="gears" />
+              </template>
+              <h2>Ustawienia</h2>
+            </n-button>
+          </n-list-item>
         </template>
       </n-list>
     </nav>
@@ -70,6 +82,9 @@ import { NList, NListItem, NButton } from "naive-ui";
           color: rgb(51, 54, 57);
           padding: 20px 10px;
           width: 100%;
+		  
+		  
+		  
         }
       }
     }

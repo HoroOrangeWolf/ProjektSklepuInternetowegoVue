@@ -21,156 +21,189 @@ import UserAccount from '../components/User/UserAccount.vue'
 import UserOrder from '../components/User/UserOrder.vue'
 import UserOpinions from '../components/User/UserOpinions.vue'
 import NotAuthorized from '../components/ErrorPages/NotAuthorized.vue'
+import MainSettingsComp from "../components/SettingsComp/MainSettingsComp";
+import ChangePassword from "../components/SettingsComp/ChangePassword";
+import ChangeUserAccount from "../components/SettingsComp/ChangeUserAccount";
+import ChangeAdress from "../components/SettingsComp/ChangeAdress";
 
 //User model
-import userModel, {isLoaded, getAutheticatedUser} from '../components/GlobalContext/GlobalVariables'
-
+import userModel, {
+  isLoaded,
+  getAutheticatedUser,
+} from "../components/GlobalContext/GlobalVariables";
 
 const routes = [
   {
-    path: '/',
-    name: 'Home',
+    path: "/",
+    name: "Home",
     component: Home,
     children: [
       {
-        path: '',
+        path: "",
         components: {
-          default: HomePageContent
-        }
+          default: HomePageContent,
+        },
       },
       {
-        path: 'products/:id',
-        name: 'products',
+        path: "products/:id",
+        name: "products",
         components: {
-          default: HomePageProducts
+          default: HomePageProducts,
         },
         props: true,
       },
       {
-        path: '/cart',
-        name: 'cart',
+        path: "/cart",
+        name: "cart",
         components: {
-          default:  Cart
-        }
+          default: Cart,
+        },
       },
       {
-        path: '/user',
-        name: 'user',
+        path: "/user",
+        name: "user",
         component: UserAccount,
-        meta: {authorize: ['USER']},
+        meta: { authorize: ["USER"] },
         children: [
           {
-            path: '',
+            path: "",
             components: {
-              default: UserOrder
-            }
+              default: UserOrder,
+            },
           },
           {
-            path: 'opinions',
+            path: "opinions",
             components: {
-              default: UserOpinions
-            }
+              default: UserOpinions,
+            },
           },
           {
-            path: 'order',
-            name: 'Order',
+            path: "order",
+            name: "Order",
             component: OrderMain,
             props: true,
-            meta: {authorize: ['USER']},
+            meta: { authorize: ["USER"] },
             children: [
               {
-                path: 'summary',
-                name: 'summary',
+                path: "summary",
+                name: "summary",
                 components: {
-                  default: OrderSummary
-                }
-              },
-              {
-                path: 'payment',
-                name: 'payment',
-                components: {
-                  default: OrderPayment
+                  default: OrderSummary,
                 },
-                props: true
               },
               {
-                path: 'status',
+                path: "payment",
+                name: "payment",
                 components: {
-                  default: OrderStatus
-                }
-              }
-            ]
+                  default: OrderPayment,
+                },
+                props: true,
+              },
+              {
+                path: "status",
+                components: {
+                  default: OrderStatus,
+                },
+              },
+            ],
           },
-        ]
+          {
+            path: "settings",
+            components: {
+              default: MainSettingsComp,
+            },
+            children: [
+              {
+                path: "",
+                components: {
+                  default: ChangeAdress,
+                },
+              },
+              {
+                path: "changePassword",
+                components: {
+                  default: ChangePassword,
+                },
+              },
+              {
+                path: "changeUserAccount",
+                components: {
+                  default: ChangeUserAccount,
+                },
+              },
+            ],
+            props: true,
+          },
+        ],
       },
       {
-        path: 'authorizationError',
-        name: 'authorizationError',
+        path: "authorizationError",
+        name: "authorizationError",
         components: {
-          default: NotAuthorized
-        }
+          default: NotAuthorized,
+        },
       },
       {
-        path: 'p/:id',
-        name: 'singleProduct',
+        path: "p/:id",
+        name: "singleProduct",
         components: {
-          default: ProductCard
+          default: ProductCard,
         },
         props: true,
-      }
-    ]
+      },
+    ],
   },
   {
-    path: '/profile',
-    name: 'Profile',
+    path: "/profile",
+    name: "Profile",
     component: ProfileComp,
-    meta: {authorize: ['USER', 'ADMIN']},
+    meta: { authorize: ["USER", "ADMIN"] },
   },
   {
-	  path: '/login',
-	  name: 'login',
-	  component: Login,
-    meta: {authorize: ['GUEST']},
+    path: "/login",
+    name: "login",
+    component: Login,
+    meta: { authorize: ["GUEST"] },
   },
   {
-    path: '/register',
-    name: 'register',
+    path: "/register",
+    name: "register",
     component: RegisterAccount,
-    meta: {authorize: ['GUEST']},
+    meta: { authorize: ["GUEST"] },
   },
   {
-    path: '/admin',
-    name: 'admin',
+    path: "/admin",
+    name: "admin",
     component: Admin,
-    meta: {authorize: ['ADMIN']},
-    children:[
+    meta: { authorize: ["ADMIN"] },
+    children: [
       {
-        path: '',
+        path: "",
         components: {
-          default: UserTable
+          default: UserTable,
         },
       },
       {
-        path: 'category',
+        path: "category",
         components: {
-          default: CategoryManager
-        }
+          default: CategoryManager,
+        },
       },
       {
-        path: 'product',
+        path: "product",
         components: {
-          default: ProductTable
-        }
+          default: ProductTable,
+        },
       },
       {
-        path: 'orders',
+        path: "orders",
         components: {
-          default: OrderManager
-        }
-      }
-    ]
-  }
-]
+          default: OrderManager,
+        },
+      },
+    ],
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
