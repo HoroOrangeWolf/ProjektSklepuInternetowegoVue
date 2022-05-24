@@ -8,7 +8,7 @@
     </template>
     <template #footer>
       <div class="btnContainer">
-        <n-button class="btn">
+        <n-button class="btn" @click="$router.push({ path: '/' })">
           <template #default> Przerwij płatność </template>
           <template #icon> &nbsp; </template>
         </n-button>

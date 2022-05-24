@@ -72,14 +72,25 @@ public class UserService implements UserDetailsService {
     User user = optionalUser.get();
 
     user.setIsAccountLocked(block);
+
+    userRepository.save(user);
   }
 
   @Override
   public UserDetails loadUserByUsername(String email)
     throws UsernameNotFoundException {
-    return userRepository
-      .findByEmail(email)
-      .orElseThrow(() -> new UsernameNotFoundException("User not found!"));
+
+    Optional<User> byEmail = userRepository.findByEmail(email);
+
+    if(byEmail.isEmpty())
+        throw new UsernameNotFoundException("User is not found");
+
+    User user = byEmail.get();
+
+    if(!user.getIsEnabled())
+      throw new BadRequestException("User is disabled");
+
+    return user;
   }
 
   public void updateUser(User user) {

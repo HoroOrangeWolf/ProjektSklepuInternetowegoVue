@@ -7557,7 +7557,7 @@
   "resolved" "https://registry.npmjs.org/relateurl/-/relateurl-0.2.7.tgz"
   "version" "0.2.7"
 
-"relative-time-format@^1.0.7":
+"relative-time-format@^1.0.7", "relative-time-format@^1.0.8":
   "integrity" "sha512-bbDLk8h09IdqvlhofjBMTgDzn4ESw+gvV+/KQ2YRjSbWvggI91AIKn/gFURWNGwMtaVZpJvfE5824Dy7AyhPoQ=="
   "resolved" "https://registry.npmjs.org/relative-time-format/-/relative-time-format-1.0.8.tgz"
   "version" "1.0.8"

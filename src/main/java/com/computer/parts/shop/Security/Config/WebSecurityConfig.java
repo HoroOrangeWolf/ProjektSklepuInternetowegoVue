@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -28,12 +29,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final OidcUserService oidcUserService;
   private final JWTService jwtService;
 
+  private final Environment environment;
+
   @Override
   protected void configure(HttpSecurity http) throws Exception {
+
+    String url = environment.getProperty("domain.url");
+    String port = environment.getProperty("server.port");
+    String url_port = "http://" + url + ":" + port;
+
     //        Broń boże dotykać tego kodu
     http
       .addFilterBefore(
-        new CustomAuthorizationFilter(userService, jwtService),
+        new CustomAuthorizationFilter(userService, jwtService, environment),
         UsernamePasswordAuthenticationFilter.class
       )
       .headers()
@@ -55,10 +63,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       .permitAll()
       .and()
       .formLogin()
-      .loginPage("http://localhost:8080/login")
+      .loginPage(url_port + "/login")
       .loginProcessingUrl("/login")
-      .defaultSuccessUrl("http://localhost:8080")
-      .failureUrl("http://localhost:8080/login?error")
+      .defaultSuccessUrl(url_port)
+      .failureUrl(url_port + "/login?error")
       .and()
       .logout()
       .clearAuthentication(true)
@@ -73,7 +81,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       )
       .and()
       .oauth2Login()
-      .defaultSuccessUrl("http://localhost:8080")
+      .defaultSuccessUrl(url_port)
+            .failureUrl(url_port + "/login?error")
       .userInfoEndpoint()
       .oidcUserService(oidcUserService);
     //        http.sessionManagement()

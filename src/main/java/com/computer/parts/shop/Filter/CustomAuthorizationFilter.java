@@ -13,20 +13,31 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-@AllArgsConstructor
 @Order
 public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
   private final UserService userService;
   private final JWTService jwtService;
+  private final String url;
+
+  public CustomAuthorizationFilter(UserService userService, JWTService jwtService, Environment env) {
+    this.userService = userService;
+    this.jwtService = jwtService;
+    this.url = env.getProperty("domain.url");
+  }
 
   @Override
   protected void doFilterInternal(
@@ -76,7 +87,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
           Cookie cookie_token = new Cookie("access_token", access_token);
           cookie_token.setHttpOnly(true);
           cookie_token.setMaxAge(Integer.MAX_VALUE);
-          cookie_token.setDomain("localhost");
+          cookie_token.setDomain(url);
           cookie_token.setPath("/");
 
           Cookie cookie_refresh_token = new Cookie(
@@ -85,7 +96,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
           );
           cookie_refresh_token.setHttpOnly(true);
           cookie_refresh_token.setMaxAge(Integer.MAX_VALUE);
-          cookie_refresh_token.setDomain("localhost");
+          cookie_refresh_token.setDomain(url);
           cookie_refresh_token.setPath("/");
 
           response.addCookie(cookie_token);
@@ -110,7 +121,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
           .forEach(f -> {
             Cookie cookie = new Cookie(f.getName(), null);
             cookie.setMaxAge(0);
-            cookie.setDomain("localhost");
+            cookie.setDomain(url);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
             response.addCookie(cookie);
@@ -135,7 +146,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         );
         cookie_token.setHttpOnly(true);
         cookie_token.setMaxAge(Integer.MAX_VALUE);
-        cookie_token.setDomain("localhost");
+        cookie_token.setDomain(url);
         cookie_token.setPath("/");
 
         Cookie cookie_refresh_token = new Cookie(
@@ -144,7 +155,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
         );
         cookie_refresh_token.setHttpOnly(true);
         cookie_refresh_token.setMaxAge(Integer.MAX_VALUE);
-        cookie_refresh_token.setDomain("localhost");
+        cookie_refresh_token.setDomain(url);
         cookie_refresh_token.setPath("/");
       }
 

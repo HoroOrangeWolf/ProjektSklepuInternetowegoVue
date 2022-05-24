@@ -75,12 +75,12 @@ onMounted(() => {
             class="promotion"
             v-for="(prom, index) in promotionProducts"
             :key="index"
-            @click="$router.push({ name: 'singleProduct' })"
+            @click="$router.push({ name: 'singleProduct', params: { id: prom.id + '' } })"
           >
             <img class="productImg" :src="prom.attachments[0].blob" alt="" />
             <h3>Wielka promocja!!</h3>
             <p>Giga zniżka</p>
-            <p style="word-wrap: break-word">{{ prom.name }}</p>
+            <p style="word-wrap: break-word; font-size: 14px;">{{ prom.name }}</p>
             <del style="color: rgba(128, 128, 128, 1)">{{ prom.price * 1.2 }}zł</del>
             <p style="font-weight: bold">{{ prom.price }}zł</p>
           </div>
@@ -130,9 +130,10 @@ onMounted(() => {
 
 .products-header,
 .promotions-header,
+.promotions-box,
 .products {
   width: 80%;
-
+  margin: 0 auto;
   .productsContainer {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;

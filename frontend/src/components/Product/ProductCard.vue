@@ -260,6 +260,10 @@ onMounted(async () => {
         grid-area: mainInfo;
         padding: 10px;
 
+		h2{
+			font-size: 16px;
+		}
+
         .reviewPart {
           display: flex;
           justify-content: space-between;
@@ -436,7 +440,7 @@ onMounted(async () => {
       .infoPart {
         .mainInfo {
           h2 {
-            font-size: 14px;
+            font-size: 12px;
           }
         }
 

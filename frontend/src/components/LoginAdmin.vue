@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <header-no-input />
-    <form class="login" name="form" action="http://localhost:8081/login" method="POST">
+    <form class="login" name="form" :action="`${BACKEND_URL}/login`" method="POST">
       <label for="login">Login</label>
       <input name="username" type="text" class="input" placeholder="Login" />
       <label for="password">Password</label>
@@ -23,7 +23,7 @@
       >
         <p>Register</p>
       </n-button>
-      <a href="http://localhost:8081/oauth2/authorization/google" class="linkGoogle">
+      <a :href="`${BACKEND_URL}/oauth2/authorization/google`" class="linkGoogle">
         <n-button class="button googleButton">
           <img src="../assets/google-brands.svg" width="20" height="20" alt="" />
           <p>Zaloguj się poprzez google!</p>
@@ -39,7 +39,7 @@ import HeaderNoInput from "./HeaderNoInput.vue";
 import { useToast } from "vue-toastification";
 import router from "../router";
 const toast = useToast();
-
+const BACKEND_URL = process.env.VUE_APP_BACKEND_URL;
 const url = window.location.href;
 if (url.includes("error")) {
   toast.error("Nieprawidłowe dane logowania", { timeout: 2000 });

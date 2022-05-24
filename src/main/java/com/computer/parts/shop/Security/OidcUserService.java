@@ -1,5 +1,6 @@
 package com.computer.parts.shop.Security;
 
+import com.computer.parts.shop.Exceptions.BadRequestException;
 import com.computer.parts.shop.User.*;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -7,7 +8,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.Date;
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -29,10 +33,16 @@ public class OidcUserService
   public OidcUser loadUser(OidcUserRequest userRequest)
     throws OAuth2AuthenticationException {
     OidcIdToken idToken = userRequest.getIdToken();
-    System.out.println("email");
     try {
       return (User) userService.loadUserByUsername(idToken.getClaim("email"));
-    } catch (UsernameNotFoundException ignored) {}
+    }
+    catch (BadRequestException exception){
+      throw new OAuth2AuthenticationException("Account is blocked");
+    }
+    catch (UsernameNotFoundException ignored) {
+
+    }
+
 
     AddressStandardClaim address = idToken.getAddress();
 

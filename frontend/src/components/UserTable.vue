@@ -88,14 +88,13 @@ const getAllUsers = () => {
       const { list, totalCount } = response.data;
       data.value = list;
       totalPages.value = Math.ceil(totalCount / 10);
+      isLoading.value = false;
     })
     .catch((exc) => {
       if (exc.message !== "canceled") {
         toast.error("Error, " + exc.response?.data.message, { timeout: 2000 });
+        isLoading.value = false;
       }
-    })
-    .finally(() => {
-      isLoading.value = false;
     });
 };
 
@@ -110,7 +109,7 @@ const blockUser = (userId, isBlock) => {
       getAllUsers();
     })
     .catch((exc) => {
-      toast.error("Wystąpił błąd podczas blokowania", { timeout: 2000 });
+      toast.error("Error, " + exc.response?.data.message, { timeout: 2000 });
       isLoading.value = false;
     });
 };

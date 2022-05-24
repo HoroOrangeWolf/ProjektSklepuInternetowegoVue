@@ -633,14 +633,13 @@ watch(
         const { list, totalCount } = response.data;
         totalPages.value = Math.ceil(totalCount / 10);
         dataTable.value = list;
+        isLoading.value = false;
       })
       .catch((exc) => {
         if (exc.message !== "canceled") {
           toast.error("Błąd ładowania danych", { timeout: 2000 });
+          isLoading.value = false;
         }
-      })
-      .finally(() => {
-        isLoading.value = false;
       });
   }
 );

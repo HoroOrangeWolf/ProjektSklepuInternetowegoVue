@@ -6,6 +6,8 @@ import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +19,17 @@ public class PayPalController {
   private PayPalService payPalService;
   private static final String SUCCESS_URL = "pay/success";
   private static final String CANCEL_URL = "pay/cancel";
-  private static final String BASE_URL = "http://localhost:8080/";
+
+  private static String BASE_URL = "http://localhost:8080/";
+
+  @Autowired
+  public PayPalController(PayPalService payPalService, Environment environment) {
+    this.payPalService = payPalService;
+    String url = environment.getProperty("domain.url");
+    String port = environment.getProperty("server.port");
+    String url_port = "http://" + url + ":" + port;
+    BASE_URL = url_port;
+  }
 
   @PostMapping
   public ResponseEntity<String> payment(

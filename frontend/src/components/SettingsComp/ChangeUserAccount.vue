@@ -37,7 +37,7 @@ import { NSpace, NInput, NButton, NDatePicker, NSpin } from "naive-ui";
 import axios from "axios";
 import { ref } from "vue";
 import { useToast } from "vue-toastification";
-import { getUserData } from "../GlobalContext/GlobalVariables";
+import { getUserData, getAutheticatedUser } from "../GlobalContext/GlobalVariables";
 const userData = ref(getUserData());
 const { name, surname, birthDay } = userData.value;
 const nameValue = ref(name);
@@ -83,6 +83,7 @@ const changeUserInfo = () => {
       nameValue.value = nameValue.value;
       surnameValue.value = surnameValue.value;
       dateValue.value = dateValue.value;
+      return getAutheticatedUser();
     })
     .catch((exc) => {
       toast.error("Error, " + exc.response?.data.message, { timeout: 2000 });

@@ -16,8 +16,6 @@ class ShopApplicationTests {
 
   @Test
   void contextLoads() {
-    Sort sort = Sort.by("id").descending();
-    Pageable pageable = PageRequest.of(1, 1, sort);
-    service.getUserOrdersById(1L, pageable);
+
   }
 }

@@ -53,7 +53,7 @@ import { NSpace, NInput, NButton, NSpin } from "naive-ui";
 import axios from "axios";
 import { ref } from "vue";
 import { useToast } from "vue-toastification";
-import { getUserData } from "../GlobalContext/GlobalVariables";
+import { getUserData, getAutheticatedUser } from "../GlobalContext/GlobalVariables";
 const userData = ref(getUserData());
 const { postCode, homeNumber, street, city } = userData.value.address;
 
@@ -118,6 +118,7 @@ const changeAdress = () => {
       homenumberValue.value = homenumberValue.value;
       streetnameValue.value = streetnameValue.value;
       citynameValue.value = citynameValue.value;
+      return getAutheticatedUser();
     })
     .catch((exc) => {
       toast.error("Error, " + exc.response?.data.message, { timeout: 2000 });

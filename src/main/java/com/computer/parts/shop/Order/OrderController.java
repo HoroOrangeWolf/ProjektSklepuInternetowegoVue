@@ -21,6 +21,8 @@ import javax.validation.Validator;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.hibernate.validator.internal.engine.ValidatorImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -28,18 +30,27 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(path = "api/v1/order")
-@AllArgsConstructor
 @Log4j2
 public class OrderController {
 
-  private OrderService orderService;
-  private PayPalService payPalService;
-  private UserRepository userRepository;
-  private static final String BASE_URL = "http://localhost:8081/api/v1/order";
+  private final OrderService orderService;
+  private static String BASE_URL = "http://localhost:8081/api/v1/order";
+
+  private static final String apiMapping = "/api/v1/order";
+
   private static final String SUCCESS_LINK = "/pay/success";
   private static final String CANCEL_LINK = "/pay/cancel";
 
-  //testowanie działa
+  @Autowired
+  public OrderController(OrderService orderService, Environment environment) {
+      this.orderService = orderService;
+      String url = environment.getProperty("domain.url");
+      String port = environment.getProperty("server.port");
+      String url_port = "http://" + url + ":" + port;
+      BASE_URL = url_port;
+  }
+
+    //testowanie działa
   @PostMapping
   public ResponseEntity<OrderResponse> addOrder(
     @Valid @RequestBody OrderRequest orderRequest,
@@ -50,8 +61,8 @@ public class OrderController {
     return orderService.addOrder(
       orderRequest,
       user,
-      BASE_URL + SUCCESS_LINK,
-      BASE_URL + CANCEL_LINK
+      BASE_URL + apiMapping + SUCCESS_LINK,
+      BASE_URL + apiMapping + CANCEL_LINK
     );
   }
 
@@ -87,7 +98,7 @@ public class OrderController {
     HttpServletResponse response
   ) throws PayPalRESTException, IOException {
     orderService.onPayPalPaymentSuccess(paymentId, PayerId);
-    response.sendRedirect("http://localhost:8080/user/order/status");
+    response.sendRedirect(BASE_URL + "/user/order/status");
   }
 
   @GetMapping(CANCEL_LINK)
@@ -96,7 +107,7 @@ public class OrderController {
     HttpServletResponse response
   ) throws IOException {
     orderService.onPayPalCancel(paymentId);
-    response.sendRedirect("http://localhost:8080/user/order/status?error");
+    response.sendRedirect(BASE_URL + "/user/order/status?error");
   }
 
   @GetMapping
