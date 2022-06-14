@@ -226,7 +226,9 @@ const validateRegister = () => {
   if (homeNumber.length > 0) {
     validateStatus.value.inputHomeNumber = "";
   } else {
-    toast.error("Numer domu musi się składać z minimum 1 znaku.", { timeout: 2000 });
+    toast.error("Numer domu musi się składać z minimum 1 znaku.", {
+      timeout: 2000,
+    });
     validateStatus.value.inputHomeNumber = "error";
     return false;
   }
@@ -234,7 +236,9 @@ const validateRegister = () => {
   if (street.length > 1) {
     validateStatus.value.inputStreetName = "";
   } else {
-    toast.error("Nazwa ulicy musi się składać z conajmiej 2 znaków.", { timeout: 2000 });
+    toast.error("Nazwa ulicy musi się składać z conajmiej 2 znaków.", {
+      timeout: 2000,
+    });
     validateStatus.value.inputStreetName = "error";
     return false;
   }
